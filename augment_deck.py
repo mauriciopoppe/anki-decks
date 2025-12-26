@@ -400,4 +400,3 @@ if __name__ == "__main__":
         process_deck_file(
             args.input, args.output, note_type=args.note_type, dry_run=args.dry_run
         )
-
