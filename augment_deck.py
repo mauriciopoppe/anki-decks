@@ -60,40 +60,13 @@ def setup_environment(apkg_file):
 def get_model_id_from_name(conn, model_name):
     """
     Resolves a model name to an ID by querying the 'notetypes' table.
-    Falls back to 'col' table 'models' column if 'notetypes' does not exist.
     """
     cursor = conn.cursor()
-
-    # Check if 'notetypes' table exists (Newer Anki versions)
-    try:
-        cursor.execute("SELECT id, name FROM notetypes")
-        all_types = cursor.fetchall()
-        for nid, name in all_types:
-            if name == model_name:
-                return nid
-    except sqlite3.OperationalError:
-        pass  # Table might not exist, fall back to legacy check
-
-    # Legacy check: 'models' column in 'col' table
-    cursor.execute("SELECT models FROM col")
-    row = cursor.fetchone()
-    if not row or not row[0]:
-        return None
-
-    models_raw = row[0]
-    if isinstance(models_raw, bytes):
-        models_json = models_raw.decode("utf-8")
-    else:
-        models_json = models_raw
-
-    try:
-        models = json.loads(models_json)
-        for mid, mdata in models.items():
-            if mdata["name"] == model_name:
-                return int(mid)
-    except json.JSONDecodeError:
-        return None
-
+    cursor.execute("SELECT id, name FROM notetypes")
+    all_types = cursor.fetchall()
+    for nid, name in all_types:
+        if name == model_name:
+            return nid
     return None
 
 

@@ -39,66 +39,26 @@ else:
     print("No new format found, using legacy as main.")
     shutil.copy(legacy_db_path, new_db_path)
 
-# 1. Try to get models from NEW DB
+# 1. Get models from NEW DB
+print("\n--- Reading Note Types from 'notetypes' table ---")
 conn_new = sqlite3.connect(new_db_path)
 cursor_new = conn_new.cursor()
 
-print("\n--- Reading Note Types from 'notetypes' table ---")
+models_map = {}  # ID -> {name, fields[]}
+
 try:
     cursor_new.execute("SELECT id, name FROM notetypes")
     notetypes = cursor_new.fetchall()
     if notetypes:
         for nid, name in notetypes:
             print(f"ID: {nid}, Name: {name}")
+            # Initialize with name, we will try to find fields later if needed
+            # but for sampling we mainly need the mid found in notes table.
+            models_map[str(nid)] = {"name": name, "fields": []}
     else:
         print("No entries found in 'notetypes' table.")
 except sqlite3.OperationalError:
-    print("'notetypes' table does not exist (might be an older Anki version).")
-
-print("\n--- Notes Table Schema ---")
-cursor_new.execute("PRAGMA table_info(notes)")
-for info in cursor_new.fetchall():
-    print(info)
-
-print("\n--- All Tables and Schemas ---")
-cursor_new.execute("SELECT name FROM sqlite_master WHERE type='table';")
-tables = cursor_new.fetchall()
-for table_name in tables:
-    table = table_name[0]
-    print(f"\nTable: {table}")
-    cursor_new.execute(f"PRAGMA table_info({table})")
-    for column in cursor_new.fetchall():
-        print(f"  {column}")
-
-
-print("\n--- Reading Models from NEW DB ---")
-models_map = {}  # ID -> {name, fields[]}
-try:
-    cursor_new.execute("SELECT models FROM col")
-    models_row = cursor_new.fetchone()
-    if models_row:
-        models_raw = models_row[0]
-        print(f'"{models_raw}"')
-        # models_json might be bytes in new DB?
-        if isinstance(models_raw, bytes):
-            models_json = models_raw.decode("utf-8")
-        else:
-            models_json = models_raw
-
-        print(models_json)
-        models = json.loads(models_json)
-
-        for model_id, model in models.items():
-            field_names = [f["name"] for f in model["flds"]]
-            models_map[model_id] = {"name": model["name"], "fields": field_names}
-            print(f"Model ID: {model_id}")
-            print(f"  Name: {model['name']}")
-            print(f"  Fields: {field_names}")
-            print("-" * 20)
-    else:
-        print("No models found in 'col' table.")
-except Exception as e:
-    print(f"Error reading models from NEW DB: {e}")
+    print("'notetypes' table does not exist.")
 
 # 2. Read Notes from New DB
 print("\n--- Reading Notes from New DB ---")
