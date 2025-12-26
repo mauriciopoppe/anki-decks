@@ -15,7 +15,7 @@ os.makedirs(extract_dir)
 
 print(f"Extracting {apkg_file}...")
 try:
-    with zipfile.ZipFile(apkg_file, 'r') as zip_ref:
+    with zipfile.ZipFile(apkg_file, "r") as zip_ref:
         zip_ref.extractall(extract_dir)
 except zipfile.BadZipFile:
     print("Error: The .apkg file is not a valid zip file.")
@@ -33,38 +33,64 @@ new_db_path = os.path.join(extract_dir, "collection_new.anki2")
 if os.path.exists(new_db_source):
     print("Found collection.anki21b. Decompressing...")
     dctx = zstd.ZstdDecompressor()
-    with open(new_db_source, 'rb') as ifh, open(new_db_path, 'wb') as ofh:
+    with open(new_db_source, "rb") as ifh, open(new_db_path, "wb") as ofh:
         dctx.copy_stream(ifh, ofh)
 else:
     print("No new format found, using legacy as main.")
     shutil.copy(legacy_db_path, new_db_path)
 
 # 1. Try to get models from NEW DB
-print("\n--- Reading Models from NEW DB ---")
 conn_new = sqlite3.connect(new_db_path)
 cursor_new = conn_new.cursor()
 
-models_map = {} # ID -> {name, fields[]}
+print("\n--- Reading Note Types from 'notetypes' table ---")
+try:
+    cursor_new.execute("SELECT id, name FROM notetypes")
+    notetypes = cursor_new.fetchall()
+    if notetypes:
+        for nid, name in notetypes:
+            print(f"ID: {nid}, Name: {name}")
+    else:
+        print("No entries found in 'notetypes' table.")
+except sqlite3.OperationalError:
+    print("'notetypes' table does not exist (might be an older Anki version).")
 
+print("\n--- Notes Table Schema ---")
+cursor_new.execute("PRAGMA table_info(notes)")
+for info in cursor_new.fetchall():
+    print(info)
+
+print("\n--- All Tables and Schemas ---")
+cursor_new.execute("SELECT name FROM sqlite_master WHERE type='table';")
+tables = cursor_new.fetchall()
+for table_name in tables:
+    table = table_name[0]
+    print(f"\nTable: {table}")
+    cursor_new.execute(f"PRAGMA table_info({table})")
+    for column in cursor_new.fetchall():
+        print(f"  {column}")
+
+
+print("\n--- Reading Models from NEW DB ---")
+models_map = {}  # ID -> {name, fields[]}
 try:
     cursor_new.execute("SELECT models FROM col")
     models_row = cursor_new.fetchone()
     if models_row:
         models_raw = models_row[0]
+        print(f'"{models_raw}"')
         # models_json might be bytes in new DB?
         if isinstance(models_raw, bytes):
-            models_json = models_raw.decode('utf-8')
+            models_json = models_raw.decode("utf-8")
         else:
             models_json = models_raw
-            
+
+        print(models_json)
         models = json.loads(models_json)
-        
+
         for model_id, model in models.items():
-            field_names = [f['name'] for f in model['flds']]
-            models_map[model_id] = {
-                "name": model['name'],
-                "fields": field_names
-            }
+            field_names = [f["name"] for f in model["flds"]]
+            models_map[model_id] = {"name": model["name"], "fields": field_names}
             print(f"Model ID: {model_id}")
             print(f"  Name: {model['name']}")
             print(f"  Fields: {field_names}")
@@ -84,36 +110,33 @@ mids = [row[0] for row in cursor_new.fetchall()]
 for mid in mids:
     mid_str = str(mid)
     model_info = models_map.get(mid_str, {"name": "Unknown", "fields": []})
-    
+
     print(f"\nSampling Notes for Model: {model_info['name']} (ID: {mid})")
-    
+
     cursor_new.execute("SELECT flds FROM notes WHERE mid=? LIMIT 10", (mid,))
     rows = cursor_new.fetchall()
-    
-    found_non_empty = [False] * 20 # Arbitrary max fields
+
+    found_non_empty = [False] * 20  # Arbitrary max fields
     example_values = [""] * 20
-    
+
     max_fields = 0
-    
+
     for (flds,) in rows:
-        parts = flds.split('\x1f')
+        parts = flds.split("\x1f")
         max_fields = max(max_fields, len(parts))
-        
+
         for i, p in enumerate(parts):
             if p and p.strip():
                 found_non_empty[i] = True
                 if not example_values[i]:
-                    example_values[i] = p[:50].replace('\n', ' ')
-    
+                    example_values[i] = p[:50].replace("\n", " ")
+
     print(f"  Max Fields found: {max_fields}")
     for i in range(max_fields):
-        fname = model_info['fields'][i] if i < len(model_info['fields']) else f"Field {i}"
-        status = '[HAS CONTENT]' if found_non_empty[i] else '[ALWAYS EMPTY]'
+        fname = (
+            model_info["fields"][i] if i < len(model_info["fields"]) else f"Field {i}"
+        )
+        status = "[HAS CONTENT]" if found_non_empty[i] else "[ALWAYS EMPTY]"
         print(f"    [{i}] {fname}: {status} - Example: {example_values[i]}")
-
-print("\n--- Notes Table Schema ---")
-cursor_new.execute("PRAGMA table_info(notes)")
-for info in cursor_new.fetchall():
-    print(info)
 
 conn_new.close()
