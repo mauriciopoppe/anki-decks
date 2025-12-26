@@ -98,7 +98,7 @@ def get_model_id_from_name(conn, model_name):
 
 def generate_notes(client, text):
     prompt = f"""
-    Analyze the following French sentence/phrase found in an Anki card:
+    Analyze the following sentence/phrase found in an Anki card:
     "{text}"
 
     Provide a concise but helpful explanation suitable for the "Notes" field.
