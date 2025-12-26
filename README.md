@@ -55,11 +55,11 @@ This tool automatically augments Anki decks by generating helpful explanations f
 Ensure Anki is open and AnkiConnect is installed.
 
 ```bash
-# Basic usage (uses default model name "Cloze")
+# Basic usage (uses default note type "Cloze")
 python augment_deck.py --anki-connect
 
-# Specify a custom model name and perform a dry run
-python augment_deck.py --anki-connect --model-name "My French Model" --dry-run
+# Specify a custom note-type and perform a dry run
+python augment_deck.py --anki-connect --note-type "My French Model" --dry-run
 ```
 
 ### Mode 2: File Mode
@@ -73,14 +73,14 @@ python augment_deck.py --input "MyDeck.apkg" --output "MyDeck_Augmented.apkg"
 ### Command Line Arguments
 
 - `--anki-connect`: Use AnkiConnect to update a running Anki instance.
-- `--model-name`: (Optional) The name of the Note Type to augment. Defaults to "Cloze".
+- `--note-type`: (Optional) The name of the Note Type to augment. Defaults to "Cloze".
 - `--input`: (Required in File Mode) Path to the source `.apkg` file.
 - `--output`: (Required in File Mode) Path where the augmented `.apkg` file will be saved.
 - `--dry-run`: Identify and list notes that would be updated without making any changes or API calls.
 
 ## How It Works
 
-1.  **Discovery:** The script identifies notes belonging to the specified Model Name.
+1.  **Discovery:** The script identifies notes belonging to the specified Note Type.
 2.  **Filtering:** It scans for cards where the "Notes" field (mapped via index) is empty.
 3.  **Generation:** It sends the card's text to the Gemini API to generate a helpful explanation using the `gemini-3-flash-preview` model.
 4.  **Update:**

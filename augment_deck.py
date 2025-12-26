@@ -15,7 +15,7 @@ from tqdm import tqdm
 
 # Configuration
 EXTRACT_DIR = "temp_augment"
-DEFAULT_MODEL_NAME = "Cloze"
+DEFAULT_NOTE_TYPE = "Cloze"
 FIELD_INDEX_TEXT = 0
 FIELD_INDEX_NOTES = 2
 
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Augment Anki deck with AI-generated notes.")
     
     parser.add_argument("--anki-connect", action="store_true", help="Use AnkiConnect to update running Anki instance")
-    parser.add_argument("--model-name", default=DEFAULT_MODEL_NAME, help=f"Anki Model (Note Type) Name (default: '{DEFAULT_MODEL_NAME}')")
+    parser.add_argument("--note-type", default=DEFAULT_NOTE_TYPE, help=f"Anki Model (Note Type) Name (default: '{DEFAULT_NOTE_TYPE}')")
     parser.add_argument("--input", help="Input .apkg file path")
     parser.add_argument("--output", help="Output .apkg file path")
     parser.add_argument("--dry-run", action="store_true", help="Identify and list notes without processing")
