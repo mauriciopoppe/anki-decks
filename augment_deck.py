@@ -16,8 +16,8 @@ from tqdm import tqdm
 # Configuration
 EXTRACT_DIR = "temp_augment"
 DEFAULT_NOTE_TYPE = "Cloze"
-FIELD_INDEX_TEXT = 0
-FIELD_INDEX_NOTES = 2
+FIELD_NAME_TEXT = "Text"
+FIELD_NAME_NOTES = "Notes"
 
 # Gemini Setup
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -70,6 +70,27 @@ def get_model_id_from_name(conn, model_name):
     return None
 
 
+def get_field_indices(conn, ntid):
+    """
+    Retrieves the field indices for 'Text' and 'Notes' from the 'fields' table.
+    Returns a tuple (text_idx, notes_idx).
+    """
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, ord FROM fields WHERE ntid=?", (ntid,))
+    fields = cursor.fetchall()
+
+    text_idx = None
+    notes_idx = None
+
+    for name, ord_val in fields:
+        if name == FIELD_NAME_TEXT:
+            text_idx = ord_val
+        elif name == FIELD_NAME_NOTES:
+            notes_idx = ord_val
+
+    return text_idx, notes_idx
+
+
 def generate_notes(client, text):
     prompt = f"""
     Analyze the following sentence/phrase found in an Anki card:
@@ -96,21 +117,22 @@ def generate_notes(client, text):
         return ""
 
 
-def process_note_file(client, nid, flds):
+def process_note_file(client, nid, flds, text_idx, notes_idx):
     parts = flds.split("\x1f")
 
     # Ensure we have enough fields
-    while len(parts) <= FIELD_INDEX_NOTES:
+    max_idx = max(text_idx, notes_idx)
+    while len(parts) <= max_idx:
         parts.append("")
 
-    current_note = parts[FIELD_INDEX_NOTES]
+    current_note = parts[notes_idx]
 
     # Only fill if empty
     if not current_note.strip():
-        text = parts[FIELD_INDEX_TEXT]
+        text = parts[text_idx]
         generated_note = generate_notes(client, text)
         if generated_note:
-            parts[FIELD_INDEX_NOTES] = generated_note
+            parts[notes_idx] = generated_note
             new_flds = "\x1f".join(parts)
             return (new_flds, int(time.time()), nid)
 
@@ -128,6 +150,21 @@ def process_deck_file(apkg_file, output_file, note_type, dry_run=False):
         sys.exit(1)
     print(f"Resolved model name '{note_type}' to ID {resolved_mid}")
 
+    text_idx, notes_idx = get_field_indices(conn, resolved_mid)
+    if text_idx is None or notes_idx is None:
+        print(
+            f"Error: Could not find required fields '{FIELD_NAME_TEXT}' and '{FIELD_NAME_NOTES}' in model '{note_type}'."
+        )
+        print(
+            f"Found indices - {FIELD_NAME_TEXT}: {text_idx}, {FIELD_NAME_NOTES}: {notes_idx}"
+        )
+        conn.close()
+        sys.exit(1)
+
+    print(
+        f"Field mapping: {FIELD_NAME_TEXT} -> {text_idx}, {FIELD_NAME_NOTES} -> {notes_idx}"
+    )
+
     cursor = conn.cursor()
     print(f"Querying notes for Model ID {resolved_mid}...")
     cursor.execute("SELECT id, flds FROM notes WHERE mid=?", (resolved_mid,))
@@ -138,7 +175,8 @@ def process_deck_file(apkg_file, output_file, note_type, dry_run=False):
     notes_to_process = []
     for nid, flds in notes:
         parts = flds.split("\x1f")
-        if len(parts) <= FIELD_INDEX_NOTES or not parts[FIELD_INDEX_NOTES].strip():
+        # Ensure enough parts for checking existing note
+        if len(parts) <= notes_idx or not parts[notes_idx].strip():
             notes_to_process.append((nid, flds))
 
     print(f"Found {len(notes_to_process)} notes that require augmentation.")
@@ -147,11 +185,7 @@ def process_deck_file(apkg_file, output_file, note_type, dry_run=False):
         print("\n--- Dry Run: Notes to be updated ---")
         for nid, flds in notes_to_process:
             parts = flds.split("\x1f")
-            text = (
-                parts[FIELD_INDEX_TEXT]
-                if len(parts) > FIELD_INDEX_TEXT
-                else "[No Text]"
-            )
+            text = parts[text_idx] if len(parts) > text_idx else "[No Text]"
             display_text = text.replace("\n", " ")[:80]
             print(f"ID: {nid} | Text: {display_text}...")
         print("\nDry run complete. No changes made.")
@@ -166,7 +200,9 @@ def process_deck_file(apkg_file, output_file, note_type, dry_run=False):
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [
-                executor.submit(process_note_file, client, nid, flds)
+                executor.submit(
+                    process_note_file, client, nid, flds, text_idx, notes_idx
+                )
                 for nid, flds in notes_to_process
             ]
 
@@ -259,34 +295,30 @@ def process_deck_ankiconnect(note_type, dry_run=False):
     batch_size = 500
     notes_to_process = []
 
-    field_name_text = None
-    field_name_notes = None
+    # Check first note to verify fields exist
+    if note_ids:
+        first_info = invoke_anki("notesInfo", notes=note_ids[:1])[0]
+        fields = first_info["fields"]
+        if FIELD_NAME_TEXT not in fields:
+            print(
+                f"Error: Field '{FIELD_NAME_TEXT}' not found in note type '{note_type}'."
+            )
+            return
+        if FIELD_NAME_NOTES not in fields:
+            print(
+                f"Error: Field '{FIELD_NAME_NOTES}' not found in note type '{note_type}'."
+            )
+            return
+        print(f"Verified fields: '{FIELD_NAME_TEXT}' and '{FIELD_NAME_NOTES}' exist.")
 
     for i in range(0, len(note_ids), batch_size):
         batch = note_ids[i : i + batch_size]
         infos = invoke_anki("notesInfo", notes=batch)
 
         for info in infos:
-            if field_name_text is None:
-                fields = info["fields"]
-                for fname, fval in fields.items():
-                    if fval["order"] == FIELD_INDEX_TEXT:
-                        field_name_text = fname
-                    elif fval["order"] == FIELD_INDEX_NOTES:
-                        field_name_notes = fname
-
-                if not field_name_text or not field_name_notes:
-                    print(
-                        f"Error: Could not map field indices to names. Text: {field_name_text}, Notes: {field_name_notes}"
-                    )
-                    sys.exit(1)
-                print(
-                    f"Mapped fields: Text='{field_name_text}', Notes='{field_name_notes}'"
-                )
-
-            note_content = info["fields"][field_name_notes]["value"]
+            note_content = info["fields"][FIELD_NAME_NOTES]["value"]
             if not note_content.strip():
-                text_content = info["fields"][field_name_text]["value"]
+                text_content = info["fields"][FIELD_NAME_TEXT]["value"]
                 notes_to_process.append({"id": info["noteId"], "text": text_content})
 
     print(f"Found {len(notes_to_process)} notes that require augmentation.")
@@ -326,7 +358,7 @@ def process_deck_ankiconnect(note_type, dry_run=False):
         for nid, new_content in tqdm(updates, desc="Sending updates to Anki"):
             invoke_anki(
                 "updateNoteFields",
-                note={"id": nid, "fields": {field_name_notes: new_content}},
+                note={"id": nid, "fields": {FIELD_NAME_NOTES: new_content}},
             )
         print("Done!")
     else:
