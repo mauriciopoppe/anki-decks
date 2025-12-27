@@ -41,21 +41,19 @@
 
             </div>
         </div>
-
-
     </div>
 
-    <br>
     <div class="sentence">
         {{#SentenceFurigana}} {{furigana:SentenceFurigana}} {{/SentenceFurigana}}
         {{^SentenceFurigana}} {{furigana:Sentence}} {{/SentenceFurigana}}
     </div>
 
-    {{#Mnemonic}}
-    <div class="mnemonic">
-        {{Mnemonic}}
+    <!-- The notes -->
+    {{#Notes}}
+    <div class="notes">
+        {{Notes}}
     </div>
-    {{/Mnemonic}}
+    {{/Notes}}
 
     <!-- The entire definition box -->
     <div class="def-info">First Definition 1/?</div>
@@ -82,12 +80,6 @@
         <div class="image tappable {{Tags}}">{{Picture}}</div>
     </div>
     {{/Picture}}
-
-    <!-- This is for the sentence that you see on mobile (positioned under definition), on Desktop, the sentence goes above the definition box, and this is hidden -->
-    <div class="sentence-mobile">
-        {{#SentenceFurigana}} {{furigana:SentenceFurigana}} {{/SentenceFurigana}}
-        {{^SentenceFurigana}} {{furigana:Sentence}} {{/SentenceFurigana}}
-    </div>
 
     <div class="audio-buttons">{{ExpressionAudio}} {{SentenceAudio}}</div>
 
@@ -556,8 +548,6 @@
         const options = [
             "--main-picture-position",
             "--sentence-furigana",
-            "--sentence-position",
-            "--mobile-sentence-position",
             "--mobile-audio-buttons",
             "--open-misc-info",
             "--glossary-separator",
