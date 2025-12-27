@@ -623,6 +623,19 @@ html:not(.mobile) .sentence-mobile {
   display: none;
 }
 
+.mnemonic {
+  font-family: var(--font-sans);
+  background-color: var(--bg-inset);
+  color: var(--fg-color);
+  padding: 10px;
+  border-radius: 8px;
+  margin: 10px auto;
+  font-size: 0.8em;
+  line-height: 1.4;
+  text-align: left;
+  border-left: 4px solid var(--bold);
+}
+
 /* Footer */
 footer {
   margin-top: auto;
