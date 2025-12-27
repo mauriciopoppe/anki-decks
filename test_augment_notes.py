@@ -6,14 +6,14 @@ import os
 
 # Ensure we can import the module
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from augment_deck import (
+from augment_notes import (
     get_model_id_from_name,
     generate_notes,
     process_deck_file,
     process_deck_ankiconnect,
 )
 
-class TestAugmentDeck(unittest.TestCase):
+class TestAugmentNotes(unittest.TestCase):
 
     def test_get_model_id_from_name_notetypes_table(self):
         """Test resolving ID from 'notetypes' table."""
@@ -78,10 +78,11 @@ class TestAugmentDeck(unittest.TestCase):
         result = generate_notes(mock_client, "Test")
         self.assertEqual(result, "")
 
-    @patch('augment_deck.setup_environment')
+    @patch('augment_notes.setup_environment')
     @patch('sqlite3.connect')
-    @patch('augment_deck.get_model_id_from_name')
-    def test_process_deck_file_dry_run(self, mock_get_mid, mock_connect, mock_setup_env):
+    @patch('augment_notes.get_model_id_from_name')
+    @patch('augment_notes.get_field_indices')
+    def test_process_deck_file_dry_run(self, mock_get_field_indices, mock_get_mid, mock_connect, mock_setup_env):
         """Test file mode dry run."""
         mock_setup_env.return_value = "dummy.db"
         mock_conn = MagicMock()
@@ -91,6 +92,9 @@ class TestAugmentDeck(unittest.TestCase):
         
         # Mock model ID resolution
         mock_get_mid.return_value = 12345
+        
+        # Mock field indices resolution
+        mock_get_field_indices.return_value = (0, 2)
 
         # Mock notes query
         # ID, Flds
@@ -105,6 +109,8 @@ class TestAugmentDeck(unittest.TestCase):
 
         # Verification
         mock_get_mid.assert_called_with(mock_conn, "Cloze")
+        mock_get_field_indices.assert_called_with(mock_conn, 12345)
+        
         # Should query for the resolved ID
         mock_cursor.execute.assert_called_with("SELECT id, flds FROM notes WHERE mid=?", (12345,))
         
@@ -115,8 +121,8 @@ class TestAugmentDeck(unittest.TestCase):
         # Should close connection
         mock_conn.close.assert_called_once()
 
-    @patch('augment_deck.invoke_anki')
-    @patch('augment_deck.setup_gemini') 
+    @patch('augment_notes.invoke_anki')
+    @patch('augment_notes.setup_gemini') 
     def test_process_deck_ankiconnect_dry_run(self, mock_setup_gemini, mock_invoke_anki):
         """Test AnkiConnect mode dry run."""
         

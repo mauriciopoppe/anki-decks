@@ -4,13 +4,13 @@ A collection of AI-powered scripts to automate and enhance Anki deck management 
 
 ## Scripts Overview
 
-- **Note Augmenter (`augment_deck.py`):** Automatically generates explanations, grammar points, and context for empty "Notes" fields.
+- **Note Augmenter (`augment_notes.py`):** Automatically generates explanations, grammar points, and context for empty "Notes" fields.
 - **Mnemonic Generator (`augment_mnemonic.py`):** Creates creative mnemonics for Japanese vocabulary based on meaning, shape, and sound.
 - **Deck Analyzer (`analyze_deck.py`):** A utility for inspecting the internal structure and field mapping of `.apkg` files.
 
 ---
 
-## 1. Note Augmenter (`augment_deck.py`)
+## 1. Note Augmenter (`augment_notes.py`)
 
 This tool generates helpful explanations for cards that have an empty "Notes" field.
 
@@ -21,7 +21,7 @@ This tool generates helpful explanations for cards that have an empty "Notes" fi
 - **Parallel Processing:** Efficiently handles large decks.
 
 ### Requirements
-- **Field Names:** By default, the script expects fields named **"Text"** (the source text) and **"Notes"** (the target for the AI-generated content). You can modify these in the `Configuration` section at the top of `augment_deck.py` if your deck uses different naming conventions.
+- **Field Names:** By default, the script expects fields named **"Text"** (the source text) and **"Notes"** (the target for the AI-generated content). You can modify these in the `Configuration` section at the top of `augment_notes.py` if your deck uses different naming conventions.
 
 | Before | After |
 | --- | --- |
@@ -30,10 +30,10 @@ This tool generates helpful explanations for cards that have an empty "Notes" fi
 ### Usage
 ```bash
 # AnkiConnect Mode (Recommended)
-python augment_deck.py --anki-connect --note-type "My Model"
+python augment_notes.py --anki-connect --note-type "My Model"
 
 # File Mode
-python augment_deck.py --input "MyDeck.apkg" --output "MyDeck_Augmented.apkg"
+python augment_notes.py --input "MyDeck.apkg" --output "MyDeck_Augmented.apkg"
 ```
 
 ---
