@@ -10,14 +10,12 @@ import markdown
 import argparse
 import requests
 import json
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 
 # Configuration
 EXTRACT_DIR = "temp_augment"
-DEFAULT_NOTE_TYPE = "Cloze"
-FIELD_NAME_TEXT = "Text"
-FIELD_NAME_NOTES = "Notes"
 
 # Gemini Setup
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -70,40 +68,25 @@ def get_model_id_from_name(conn, model_name):
     return None
 
 
-def get_field_indices(conn, ntid):
+def get_field_map(conn, ntid):
     """
-    Retrieves the field indices for 'Text' and 'Notes' from the 'fields' table.
-    Returns a tuple (text_idx, notes_idx).
+    Retrieves a mapping of field name to index for the given note type ID.
+    Returns: { "FieldName": index, ... }
     """
     cursor = conn.cursor()
     cursor.execute("SELECT name, ord FROM fields WHERE ntid=?", (ntid,))
     fields = cursor.fetchall()
-
-    text_idx = None
-    notes_idx = None
-
-    for name, ord_val in fields:
-        if name == FIELD_NAME_TEXT:
-            text_idx = ord_val
-        elif name == FIELD_NAME_NOTES:
-            notes_idx = ord_val
-
-    return text_idx, notes_idx
+    return {name: ord_val for name, ord_val in fields}
 
 
-def generate_notes(client, text):
-    prompt = f"""
-    Analyze the following sentence/phrase found in an Anki card:
-    "{text}"
-
-    Provide a concise but helpful explanation suitable for the "Notes" field.
-    1. Explain the meaning of the key vocabulary or the whole sentence.
-    2. If there is a Cloze deletion ({{c1::...}}), focus on explaining the missing part.
-    3. Point out any interesting grammar or usage.
-    4. Keep it brief (under 50 words) and clear.
-    5. Output ONLY the note content, no "Here is the note:" prefix.
-    6. Use standard Markdown formatting (bold key terms, etc.).
+def extract_required_fields(prompt_template):
     """
+    Extracts field names required by the prompt (e.g. "{Text}" -> ["Text"]).
+    """
+    return re.findall(r'\{(\w+)\}', prompt_template)
+
+
+def generate_content(client, prompt):
     try:
         response = client.models.generate_content(
             model="gemini-3-flash-preview", contents=prompt
@@ -113,33 +96,55 @@ def generate_notes(client, text):
         html_content = markdown.markdown(text_content)
         return html_content
     except Exception as e:
-        print(f"Error generating content for '{text[:20]}...': {e}")
+        print(f"Error generating content: {e}")
         return ""
 
-
-def process_note_file(client, nid, flds, text_idx, notes_idx):
+def process_note_file(client, nid, flds, field_map, target_field, prompt_template, required_fields):
     parts = flds.split("\x1f")
+    
+    # Check if target field exists in the map
+    if target_field not in field_map:
+        return None
+    
+    target_idx = field_map[target_field]
 
     # Ensure we have enough fields
-    max_idx = max(text_idx, notes_idx)
+    max_idx = max(field_map.values())
     while len(parts) <= max_idx:
         parts.append("")
 
-    current_note = parts[notes_idx]
+    current_val = parts[target_idx]
 
     # Only fill if empty
-    if not current_note.strip():
-        text = parts[text_idx]
-        generated_note = generate_notes(client, text)
-        if generated_note:
-            parts[notes_idx] = generated_note
-            new_flds = "\x1f".join(parts)
-            return (new_flds, int(time.time()), nid)
+    if not current_val.strip():
+        # Build context for prompt
+        context = {}
+        missing_field = False
+        for field in required_fields:
+            if field in field_map:
+                context[field] = parts[field_map[field]]
+            else:
+                # Required field not found in note type
+                missing_field = True
+                break
+        
+        if missing_field:
+            return None
+
+        try:
+            filled_prompt = prompt_template.format(**context)
+            generated_content = generate_content(client, filled_prompt)
+            if generated_content:
+                parts[target_idx] = generated_content
+                new_flds = "\x1f".join(parts)
+                return (new_flds, int(time.time()), nid)
+        except KeyError as e:
+            print(f"Error formatting prompt for note {nid}: Missing field {e}")
+            return None
 
     return None
 
-
-def process_deck_file(apkg_file, output_file, note_type, dry_run=False):
+def process_deck_file(apkg_file, output_file, note_type, target_field, prompt_template, dry_run=False):
     working_db = setup_environment(apkg_file)
     conn = sqlite3.connect(working_db)
 
@@ -150,20 +155,24 @@ def process_deck_file(apkg_file, output_file, note_type, dry_run=False):
         sys.exit(1)
     print(f"Resolved model name '{note_type}' to ID {resolved_mid}")
 
-    text_idx, notes_idx = get_field_indices(conn, resolved_mid)
-    if text_idx is None or notes_idx is None:
-        print(
-            f"Error: Could not find required fields '{FIELD_NAME_TEXT}' and '{FIELD_NAME_NOTES}' in model '{note_type}'."
-        )
-        print(
-            f"Found indices - {FIELD_NAME_TEXT}: {text_idx}, {FIELD_NAME_NOTES}: {notes_idx}"
-        )
+    field_map = get_field_map(conn, resolved_mid)
+    
+    if target_field not in field_map:
+        print(f"Error: Target field '{target_field}' not found in model '{note_type}'.")
+        print(f"Available fields: {list(field_map.keys())}")
         conn.close()
         sys.exit(1)
 
-    print(
-        f"Field mapping: {FIELD_NAME_TEXT} -> {text_idx}, {FIELD_NAME_NOTES} -> {notes_idx}"
-    )
+    required_fields = extract_required_fields(prompt_template)
+    for field in required_fields:
+        if field not in field_map:
+            print(f"Error: Required field '{field}' (from prompt) not found in model '{note_type}'.")
+            print(f"Available fields: {list(field_map.keys())}")
+            conn.close()
+            sys.exit(1)
+
+    print(f"Target Field: {target_field} (Index {field_map[target_field]})")
+    print(f"Required Source Fields: {required_fields}")
 
     cursor = conn.cursor()
     print(f"Querying notes for Model ID {resolved_mid}...")
@@ -172,11 +181,11 @@ def process_deck_file(apkg_file, output_file, note_type, dry_run=False):
 
     print(f"Found {len(notes)} total notes.")
 
+    target_idx = field_map[target_field]
     notes_to_process = []
     for nid, flds in notes:
         parts = flds.split("\x1f")
-        # Ensure enough parts for checking existing note
-        if len(parts) <= notes_idx or not parts[notes_idx].strip():
+        if len(parts) <= target_idx or not parts[target_idx].strip():
             notes_to_process.append((nid, flds))
 
     print(f"Found {len(notes_to_process)} notes that require augmentation.")
@@ -185,9 +194,12 @@ def process_deck_file(apkg_file, output_file, note_type, dry_run=False):
         print("\n--- Dry Run: Notes to be updated ---")
         for nid, flds in notes_to_process:
             parts = flds.split("\x1f")
-            text = parts[text_idx] if len(parts) > text_idx else "[No Text]"
+            # Show the first required field as a preview
+            preview_field = required_fields[0] if required_fields else target_field
+            preview_idx = field_map.get(preview_field, 0)
+            text = parts[preview_idx] if len(parts) > preview_idx else "[Empty]"
             display_text = text.replace("\n", " ")[:80]
-            print(f"ID: {nid} | Text: {display_text}...")
+            print(f"ID: {nid} | {preview_field}: {display_text}...")
         print("\nDry run complete. No changes made.")
         conn.close()
         return
@@ -200,9 +212,7 @@ def process_deck_file(apkg_file, output_file, note_type, dry_run=False):
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [
-                executor.submit(
-                    process_note_file, client, nid, flds, text_idx, notes_idx
-                )
+                executor.submit(process_note_file, client, nid, flds, field_map, target_field, prompt_template, required_fields)
                 for nid, flds in notes_to_process
             ]
 
@@ -274,14 +284,33 @@ def invoke_anki(action, **params):
         sys.exit(1)
 
 
-def process_note_live(client, nid, current_text):
-    generated_note = generate_notes(client, current_text)
-    if generated_note:
-        return (nid, generated_note)
+def process_note_live(client, nid, note_fields, target_field, prompt_template, required_fields):
+    # note_fields is a dict: { "FieldName": "Value", ... }
+    
+    # Check if target is empty
+    if note_fields.get(target_field, "").strip():
+        return None
+
+    # Build context
+    context = {}
+    for field in required_fields:
+        if field in note_fields:
+            context[field] = note_fields[field]
+        else:
+            return None # Should have been caught earlier, but safe check
+
+    try:
+        filled_prompt = prompt_template.format(**context)
+        generated_content = generate_content(client, filled_prompt)
+        if generated_content:
+            return (nid, generated_content)
+    except KeyError as e:
+        print(f"Error formatting prompt for note {nid}: Missing field {e}")
+        return None
+    
     return None
 
-
-def process_deck_ankiconnect(note_type, dry_run=False):
+def process_deck_ankiconnect(note_type, target_field, prompt_template, dry_run=False):
     print(f"Querying Anki for Note Type: '{note_type}'...")
     query = f'note:"{note_type}"'
     note_ids = invoke_anki("findNotes", query=query)
@@ -294,40 +323,48 @@ def process_deck_ankiconnect(note_type, dry_run=False):
 
     batch_size = 500
     notes_to_process = []
+    
+    required_fields = extract_required_fields(prompt_template)
 
     # Check first note to verify fields exist
     if note_ids:
         first_info = invoke_anki("notesInfo", notes=note_ids[:1])[0]
         fields = first_info["fields"]
-        if FIELD_NAME_TEXT not in fields:
-            print(
-                f"Error: Field '{FIELD_NAME_TEXT}' not found in note type '{note_type}'."
-            )
+        
+        if target_field not in fields:
+            print(f"Error: Target field '{target_field}' not found in note type '{note_type}'.")
             return
-        if FIELD_NAME_NOTES not in fields:
-            print(
-                f"Error: Field '{FIELD_NAME_NOTES}' not found in note type '{note_type}'."
-            )
-            return
-        print(f"Verified fields: '{FIELD_NAME_TEXT}' and '{FIELD_NAME_NOTES}' exist.")
+            
+        for rf in required_fields:
+            if rf not in fields:
+                print(f"Error: Required field '{rf}' (from prompt) not found in note type '{note_type}'.")
+                return
+        
+        print(f"Verified fields: Target='{target_field}', Source={required_fields}")
 
     for i in range(0, len(note_ids), batch_size):
         batch = note_ids[i : i + batch_size]
         infos = invoke_anki("notesInfo", notes=batch)
 
         for info in infos:
-            note_content = info["fields"][FIELD_NAME_NOTES]["value"]
-            if not note_content.strip():
-                text_content = info["fields"][FIELD_NAME_TEXT]["value"]
-                notes_to_process.append({"id": info["noteId"], "text": text_content})
+            # We construct a simple dict { "FieldName": "Value" }
+            note_fields = {k: v["value"] for k, v in info["fields"].items()}
+            
+            # Filter logic: if target is empty
+            if not note_fields.get(target_field, "").strip():
+                # We store the whole note_fields because we might need multiple source fields
+                notes_to_process.append({"id": info["noteId"], "fields": note_fields})
 
     print(f"Found {len(notes_to_process)} notes that require augmentation.")
 
     if dry_run:
         print("\n--- Dry Run: Notes to be updated via AnkiConnect ---")
         for n in notes_to_process:
-            display_text = n["text"].replace("\n", " ")[:80]
-            print(f"ID: {n['id']} | Text: {display_text}...")
+            # Preview using first required field
+            preview_field = required_fields[0] if required_fields else target_field
+            preview_text = n["fields"].get(preview_field, "[Missing]")
+            display_text = preview_text.replace("\n", " ")[:80]
+            print(f"ID: {n['id']} | {preview_field}: {display_text}...")
         print("\nDry run complete. No changes made.")
         return
 
@@ -342,7 +379,7 @@ def process_deck_ankiconnect(note_type, dry_run=False):
     updates = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [
-            executor.submit(process_note_live, client, n["id"], n["text"])
+            executor.submit(process_note_live, client, n["id"], n["fields"], target_field, prompt_template, required_fields)
             for n in notes_to_process
         ]
 
@@ -358,7 +395,7 @@ def process_deck_ankiconnect(note_type, dry_run=False):
         for nid, new_content in tqdm(updates, desc="Sending updates to Anki"):
             invoke_anki(
                 "updateNoteFields",
-                note={"id": nid, "fields": {FIELD_NAME_NOTES: new_content}},
+                note={"id": nid, "fields": {target_field: new_content}},
             )
         print("Done!")
     else:
@@ -367,7 +404,7 @@ def process_deck_ankiconnect(note_type, dry_run=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Augment Anki deck with AI-generated notes."
+        description="Augment Anki deck with AI-generated content."
     )
 
     parser.add_argument(
@@ -377,8 +414,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--note-type",
-        default=DEFAULT_NOTE_TYPE,
-        help=f"Anki Model (Note Type) Name (default: '{DEFAULT_NOTE_TYPE}')",
+        required=True,
+        help="Anki Model (Note Type) Name",
     )
     parser.add_argument("--input", help="Input .apkg file path")
     parser.add_argument("--output", help="Output .apkg file path")
@@ -387,11 +424,33 @@ if __name__ == "__main__":
         action="store_true",
         help="Identify and list notes without processing",
     )
+    parser.add_argument(
+        "--target-field",
+        required=True,
+        help="The field to fill (e.g. 'Notes', 'Mnemonic')",
+    )
+    parser.add_argument(
+        "--prompt-file",
+        required=True,
+        help="Path to a text file containing the prompt template. Use {FieldName} for placeholders.",
+    )
 
     args = parser.parse_args()
+    
+    if os.path.exists(args.prompt_file):
+        with open(args.prompt_file, 'r', encoding='utf-8') as f:
+            prompt_template = f.read()
+    else:
+        print(f"Error: Prompt file '{args.prompt_file}' not found.")
+        sys.exit(1)
 
     if args.anki_connect:
-        process_deck_ankiconnect(note_type=args.note_type, dry_run=args.dry_run)
+        process_deck_ankiconnect(
+            note_type=args.note_type,
+            target_field=args.target_field,
+            prompt_template=prompt_template,
+            dry_run=args.dry_run
+        )
     else:
         if not args.input or not args.output:
             print(
@@ -403,5 +462,10 @@ if __name__ == "__main__":
             sys.exit(1)
 
         process_deck_file(
-            args.input, args.output, note_type=args.note_type, dry_run=args.dry_run
+            args.input,
+            args.output,
+            note_type=args.note_type,
+            target_field=args.target_field,
+            prompt_template=prompt_template,
+            dry_run=args.dry_run
         )

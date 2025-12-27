@@ -1,0 +1,18 @@
+Generate a creative and memorable mnemonic for the Japanese word:
+"{Expression}" (Reading: "{ExpressionReading}").
+
+Follow this exact format:
+The Mnemonic: "[Title]"
+
+Meaning: [Brief Meaning] ({Expression}).
+
+Shape: [Visual connection to the kanji strokes, components, or overall shape]
+
+Sound: [Sound mnemonic, pun, or story connecting the reading to the meaning]
+({ExpressionReading}).
+
+Example for お皿 (Plate):
+The Mnemonic: "The Broken Heirloom"
+Meaning: A plate (お皿).
+Shape: It breaks into 5 pieces (matching the 5 strokes of 皿).
+Sound: You gasp, "Oh... Sarah!" (おさら).

@@ -4,64 +4,65 @@ A collection of AI-powered scripts to automate and enhance Anki deck management 
 
 ## Scripts Overview
 
-- **Note Augmenter (`augment_notes.py`):** Automatically generates explanations, grammar points, and context for empty "Notes" fields.
-- **Mnemonic Generator (`augment_mnemonic.py`):** Creates creative mnemonics for Japanese vocabulary based on meaning, shape, and sound.
-- **Deck Analyzer (`analyze_deck.py`):** A utility for inspecting the internal structure and field mapping of `.apkg` files.
+- **(`augment_notes.py`):** Automatically generates content (notes, mnemonics, etc.) for your Anki cards using configurable AI prompts and target fields.
 
 ---
 
-## 1. Note Augmenter (`augment_notes.py`)
+## `augment_notes.py`
 
-This tool generates helpful explanations for cards that have an empty "Notes" field.
+This tool fills empty fields in your Anki cards with AI-generated content based on other fields in the card.
 
 ### Features
-- **AI-Powered Explanations:** Uses Gemini 3 Flash Preview for context-aware notes.
+- **Configurable Prompts:** Use `{FieldName}` placeholders in your prompt to dynamically insert content from the card.
+- **Custom Targets:** Specify any field as the destination for the generated content.
+- **AI-Powered:** Uses Gemini 3 Flash Preview for intelligent generation.
 - **Two Modes:** Modifies `.apkg` files directly or updates via AnkiConnect.
-- **Smart Filtering:** Only targets empty fields.
+- **Smart Filtering:** Only targets cards where the destination field is empty.
 - **Parallel Processing:** Efficiently handles large decks.
 
-### Requirements
-- **Field Names:** By default, the script expects fields named **"Text"** (the source text) and **"Notes"** (the target for the AI-generated content). You can modify these in the `Configuration` section at the top of `augment_notes.py` if your deck uses different naming conventions.
+### Usage
+
+#### Explain a sentence in the Cloze Format
+
+I have a deck with sentences in French like `Sur ça, tu touches un point {{c1::assez juste::fairly accurate}}, je trouve.`. I use the prompt [./french_explain_prompt.txt](./french_explain_prompt.txt) to extract the "Text" field and generate an explanation for the word and sentence and store it in the "Notes" field.
 
 | Before | After |
 | --- | --- |
-| ![before](./resources/before.png) | ![after](./resources/after.png) |
+| ![before](./resources/french-explain-before.png) | ![after](./resources/french-explain-after.png) |
 
-### Usage
+
 ```bash
-# AnkiConnect Mode (Recommended)
-python augment_notes.py --anki-connect --note-type "My Model"
-
-# File Mode
-python augment_notes.py --input "MyDeck.apkg" --output "MyDeck_Augmented.apkg"
+python augment_notes.py \
+  --anki-connect \
+  --note-type "Cloze" \
+  --target-field "Notes" \
+  --prompt-file "./french_explain_prompt.txt"
 ```
 
----
+#### Generating Mnemonics for Kanji
 
-## 2. Mnemonic Generator (`augment_mnemonic.py`)
+I have a Japanese mining deck created with Yomitan's scanning of Kanji words `聞く`. I use the prompt [./kanji_mnemonic_prompt.txt](./kanji_mnemonic_prompt.txt) to extract multiple fields in my card and generate a mnemonic. The mnemonic ends up being a great way to remember the Meaning, Shape and Sound.
 
-Generates creative mnemonics for Japanese vocabulary cards, specifically targeting meaning, shape (kanji), and sound (reading).
+| Before | After |
+| --- | --- |
+| ![before](./resources/kanji-mnemonic-before.png) | ![after](./resources/kanji-mnemonic-after.png) |
 
-### Features
-- **Reading-Aware:** Uses `ExpressionReading` to create phonetically relevant mnemonics.
-- **Structured HTML:** Produces beautifully formatted sections for Meaning, Shape, and Sound.
-- **AnkiConnect Ready:** Seamlessly updates your Japanese decks.
-
-### Requirements
-- **Field Names:** The script expects the following fields:
-  - **"Expression"**: The Japanese word or phrase.
-  - **"ExpressionReading"**: The reading (furigana/kana) for phonetic mnemonics.
-  - **"Mnemonic"**: The target field for the generated content.
-  These can be adjusted in the script's constants if needed.
-
-### Usage
 ```bash
-# Basic usage (defaults to "Lapis" note type)
-python augment_mnemonic.py
-
-# With custom note type and dry run
-python augment_mnemonic.py --model-name "Japanese Vocab" --dry-run
+python augment_notes.py \
+  --anki-connect \
+  --note-type "Lapis" \
+  --target-field "Notes" \
+  --prompt-file "./kanji_mnemonic_prompt.txt"
 ```
+
+### Command Line Arguments
+
+- `--anki-connect`: Use AnkiConnect to update a running Anki instance.
+- `--input`, `--output`: Input and output `.apkg` files (for file mode).
+- `--note-type`: **(Required)** The Anki Note Type to process.
+- `--target-field`: **(Required)** The field to populate (e.g. "Notes", "Mnemonic").
+- `--prompt-file`: **(Required)** Path to a text file containing the custom prompt template. Use `{FieldName}` for placeholders.
+- `--dry-run`: Preview changes without applying them.
 
 ---
 
@@ -70,18 +71,18 @@ python augment_mnemonic.py --model-name "Japanese Vocab" --dry-run
 ### Prerequisites
 - Python 3.9+
 - A Google Gemini API Key
-- (Optional) Anki with the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on.
+- Anki with the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on.
 
 ### Installation
-1. **Clone the repository.**
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. **Set up API Key:**
-   ```bash
-   export GEMINI_API_KEY="your_api_key_here"
-   ```
+1.  **Clone the repository.**
+2.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+3.  **Set up API Key:**
+    ```bash
+    export GEMINI_API_KEY="your_api_key_here"
+    ```
 
 ## Disclaimer
 

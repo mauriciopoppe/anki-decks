@@ -1,0 +1,10 @@
+Analyze the following sentence/phrase found in an Anki card:
+"{Text}"
+
+Provide a concise but helpful explanation suitable for the "Notes" field.
+1. Explain the meaning of the key vocabulary or the whole sentence.
+2. If there is a Cloze deletion ({{c1::...}}), focus on explaining the missing part.
+3. Point out any interesting grammar or usage.
+4. Keep it brief (under 50 words) and clear.
+5. Output ONLY the note content, no "Here is the note:" prefix.
+6. Use standard Markdown formatting (bold key terms, etc.).
