@@ -15,7 +15,7 @@ This tool fills empty fields in your Anki cards with AI-generated content based 
 ### Features
 - **Configurable Prompts:** Use `{FieldName}` placeholders in your prompt to dynamically insert content from the card.
 - **Custom Targets:** Specify any field as the destination for the generated content.
-- **AI-Powered:** Uses Gemini 3 Flash Preview for intelligent generation.
+- **AI-Powered:** Uses LiteLLM for intelligent generation, supporting Gemini, Ollama, and more.
 - **Two Modes:** Modifies `.apkg` files directly or updates via AnkiConnect.
 - **Smart Filtering:** Only targets cards where the destination field is empty.
 - **Parallel Processing:** Efficiently handles large decks.
@@ -34,7 +34,7 @@ I have a deck with sentences in French like `Sur ça, tu touches un point {{c1::
 ```bash
 python augment_notes.py \
   --anki-connect \
-  --note-type "Cloze" \
+  --note-type "My French" \
   --target-field "Notes" \
   --prompt-file "./french_explain_prompt.txt"
 ```
@@ -62,6 +62,7 @@ python augment_notes.py \
 - `--note-type`: **(Required)** The Anki Note Type to process.
 - `--target-field`: **(Required)** The field to populate (e.g. "Notes", "Mnemonic").
 - `--prompt-file`: **(Required)** Path to a text file containing the custom prompt template. Use `{FieldName}` for placeholders.
+- `--model`: LiteLLM model identifier (e.g., `gemini/gemini-1.5-flash`, `ollama/qwen2.5:4b`). Default: `gemini/gemini-3-flash-preview`.
 - `--dry-run`: Preview changes without applying them.
 
 ---

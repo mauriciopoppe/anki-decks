@@ -1,5 +1,5 @@
 Analyze the following sentence/phrase found in an Anki card:
-"{Text}"
+"{Expression}"
 
 Provide a concise but helpful explanation suitable for the "Notes" field.
 1. Explain the meaning of the key vocabulary or the whole sentence.

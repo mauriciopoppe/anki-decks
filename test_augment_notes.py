@@ -8,9 +8,9 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from augment_notes import (
     get_model_id_from_name,
-    generate_content,
     process_deck_file,
-    process_deck_ankiconnect
+    process_deck_ankiconnect,
+    LiteLLMClient
 )
 
 TEST_PROMPT = "Analyze: {Text}"
@@ -49,37 +49,31 @@ class TestAugmentNotes(unittest.TestCase):
         result = get_model_id_from_name(mock_conn, "NonExistent")
         self.assertIsNone(result)
 
-    def test_generate_content_success(self):
-        """Test successful content generation and formatting."""
-        mock_client = MagicMock()
+    @patch('augment_notes.litellm')
+    def test_litellm_client_generate_success(self, mock_litellm):
+        """Test successful generation with LiteLLM."""
         mock_response = MagicMock()
-        
-        # Mock the API response text
-        mock_response.text = "**Bold** explanation."
-        mock_client.models.generate_content.return_value = mock_response
+        mock_response.choices[0].message.content = "**Bold** response"
+        mock_litellm.completion.return_value = mock_response
 
-        text = "Bonjour"
-        result = generate_content(mock_client, text)
+        client = LiteLLMClient(model="gemini/gemini-1.5-flash")
+        result = client.generate("Test prompt")
 
-        # Check if markdown was converted to HTML
-        self.assertIn("<strong>Bold</strong>", result)
-        self.assertIn("explanation", result)
-        
-        # Verify API call arguments
-        mock_client.models.generate_content.assert_called_once()
-        call_args = mock_client.models.generate_content.call_args
-        self.assertEqual(call_args.kwargs['model'], 'gemini-3-flash-preview')
-        self.assertIn(text, call_args.kwargs['contents'])
+        self.assertEqual(result, "**Bold** response")
+        mock_litellm.completion.assert_called_once_with(
+            model="gemini/gemini-1.5-flash",
+            messages=[{"role": "user", "content": "Test prompt"}]
+        )
 
-    def test_generate_content_failure(self):
-        """Test error handling during generation."""
-        mock_client = MagicMock()
-        
-        # Simulate an exception
-        mock_client.models.generate_content.side_effect = Exception("API Error")
+    @patch('augment_notes.litellm')
+    def test_litellm_client_generate_failure(self, mock_litellm):
+        """Test error handling in LiteLLM generation."""
+        mock_litellm.completion.side_effect = Exception("API Error")
 
-        result = generate_content(mock_client, "Test")
-        self.assertEqual(result, "")
+        client = LiteLLMClient(model="gemini/gemini-1.5-flash")
+        result = client.generate("Test prompt")
+
+        self.assertIsNone(result)
 
     @patch('augment_notes.setup_environment')
     @patch('sqlite3.connect')
@@ -107,13 +101,16 @@ class TestAugmentNotes(unittest.TestCase):
             (3, "Text3\x1fExtra\x1f\x1fImage"), # Empty Note
         ]
 
+        mock_llm_client = MagicMock()
+
         # Call the function in dry run mode
         process_deck_file(
             "input.apkg", 
             "output.apkg", 
             "Cloze", 
             TEST_TARGET_FIELD, 
-            TEST_PROMPT, 
+            TEST_PROMPT,
+            mock_llm_client,
             dry_run=True
         )
 
@@ -132,8 +129,7 @@ class TestAugmentNotes(unittest.TestCase):
         mock_conn.close.assert_called_once()
 
     @patch('augment_notes.invoke_anki')
-    @patch('augment_notes.setup_gemini') 
-    def test_process_deck_ankiconnect_dry_run(self, mock_setup_gemini, mock_invoke_anki):
+    def test_process_deck_ankiconnect_dry_run(self, mock_invoke_anki):
         """Test AnkiConnect mode dry run."""
         
         # Mock findNotes
@@ -169,11 +165,13 @@ class TestAugmentNotes(unittest.TestCase):
             return None
 
         mock_invoke_anki.side_effect = side_effect
+        mock_llm_client = MagicMock()
 
         process_deck_ankiconnect(
             "Cloze", 
             TEST_TARGET_FIELD, 
-            TEST_PROMPT, 
+            TEST_PROMPT,
+            mock_llm_client,
             dry_run=True
         )
 
@@ -185,9 +183,6 @@ class TestAugmentNotes(unittest.TestCase):
         calls = mock_invoke_anki.call_args_list
         update_calls = [c for c in calls if c[0][0] == 'updateNoteFields']
         self.assertEqual(len(update_calls), 0)
-        
-        # Gemini should not be setup in dry run if we skip processing
-        mock_setup_gemini.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()

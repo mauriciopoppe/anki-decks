@@ -3,7 +3,6 @@ import os
 import zipfile
 import shutil
 import zstandard as zstd
-from google import genai
 import time
 import sys
 import markdown
@@ -13,19 +12,26 @@ import json
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
+import litellm
 
 # Configuration
 EXTRACT_DIR = "temp_augment"
 
-# Gemini Setup
-api_key = os.environ.get("GEMINI_API_KEY")
 
+class LiteLLMClient:
+    def __init__(self, model):
+        self.model = model
 
-def setup_gemini():
-    if not api_key:
-        print("Error: GEMINI_API_KEY environment variable not set.")
-        sys.exit(1)
-    return genai.Client(api_key=api_key)
+    def generate(self, prompt):
+        try:
+            response = litellm.completion(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"LiteLLM Error ({self.model}): {e}")
+            return None
 
 
 def setup_environment(apkg_file):
@@ -83,29 +89,25 @@ def extract_required_fields(prompt_template):
     """
     Extracts field names required by the prompt (e.g. "{Text}" -> ["Text"]).
     """
-    return re.findall(r'\{(\w+)\}', prompt_template)
+    return re.findall(r"\{(\w+)\}", prompt_template)
 
 
-def generate_content(client, prompt):
-    try:
-        response = client.models.generate_content(
-            model="gemini-3-flash-preview", contents=prompt
-        )
-        text_content = response.text.strip()
-        # Convert Markdown to HTML
-        html_content = markdown.markdown(text_content)
-        return html_content
-    except Exception as e:
-        print(f"Error generating content: {e}")
+def process_content(text_content):
+    if not text_content:
         return ""
+    # Convert Markdown to HTML
+    return markdown.markdown(text_content)
 
-def process_note_file(client, nid, flds, field_map, target_field, prompt_template, required_fields):
+
+def process_note_file(
+    llm_client, nid, flds, field_map, target_field, prompt_template, required_fields
+):
     parts = flds.split("\x1f")
-    
+
     # Check if target field exists in the map
     if target_field not in field_map:
         return None
-    
+
     target_idx = field_map[target_field]
 
     # Ensure we have enough fields
@@ -127,13 +129,16 @@ def process_note_file(client, nid, flds, field_map, target_field, prompt_templat
                 # Required field not found in note type
                 missing_field = True
                 break
-        
+
         if missing_field:
             return None
 
         try:
             filled_prompt = prompt_template.format(**context)
-            generated_content = generate_content(client, filled_prompt)
+            generated_text = llm_client.generate(filled_prompt)
+            print(generated_text)
+            generated_content = process_content(generated_text)
+
             if generated_content:
                 parts[target_idx] = generated_content
                 new_flds = "\x1f".join(parts)
@@ -144,7 +149,16 @@ def process_note_file(client, nid, flds, field_map, target_field, prompt_templat
 
     return None
 
-def process_deck_file(apkg_file, output_file, note_type, target_field, prompt_template, dry_run=False):
+
+def process_deck_file(
+    apkg_file,
+    output_file,
+    note_type,
+    target_field,
+    prompt_template,
+    llm_client,
+    dry_run=False,
+):
     working_db = setup_environment(apkg_file)
     conn = sqlite3.connect(working_db)
 
@@ -156,7 +170,7 @@ def process_deck_file(apkg_file, output_file, note_type, target_field, prompt_te
     print(f"Resolved model name '{note_type}' to ID {resolved_mid}")
 
     field_map = get_field_map(conn, resolved_mid)
-    
+
     if target_field not in field_map:
         print(f"Error: Target field '{target_field}' not found in model '{note_type}'.")
         print(f"Available fields: {list(field_map.keys())}")
@@ -166,7 +180,9 @@ def process_deck_file(apkg_file, output_file, note_type, target_field, prompt_te
     required_fields = extract_required_fields(prompt_template)
     for field in required_fields:
         if field not in field_map:
-            print(f"Error: Required field '{field}' (from prompt) not found in model '{note_type}'.")
+            print(
+                f"Error: Required field '{field}' (from prompt) not found in model '{note_type}'."
+            )
             print(f"Available fields: {list(field_map.keys())}")
             conn.close()
             sys.exit(1)
@@ -206,13 +222,24 @@ def process_deck_file(apkg_file, output_file, note_type, target_field, prompt_te
 
     updates = []
     if notes_to_process:
-        client = setup_gemini()
-        max_workers = 15
-        print(f"Starting parallel processing with {max_workers} workers...")
+        # For local models, fewer workers prevents OOM
+        max_workers = (
+            1 if "ollama" in llm_client.model or "local" in llm_client.model else 15
+        )
+        print(f"Starting processing with {max_workers} workers...")
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [
-                executor.submit(process_note_file, client, nid, flds, field_map, target_field, prompt_template, required_fields)
+                executor.submit(
+                    process_note_file,
+                    llm_client,
+                    nid,
+                    flds,
+                    field_map,
+                    target_field,
+                    prompt_template,
+                    required_fields,
+                )
                 for nid, flds in notes_to_process
             ]
 
@@ -284,9 +311,11 @@ def invoke_anki(action, **params):
         sys.exit(1)
 
 
-def process_note_live(client, nid, note_fields, target_field, prompt_template, required_fields):
+def process_note_live(
+    llm_client, nid, note_fields, target_field, prompt_template, required_fields
+):
     # note_fields is a dict: { "FieldName": "Value", ... }
-    
+
     # Check if target is empty
     if note_fields.get(target_field, "").strip():
         return None
@@ -297,20 +326,25 @@ def process_note_live(client, nid, note_fields, target_field, prompt_template, r
         if field in note_fields:
             context[field] = note_fields[field]
         else:
-            return None # Should have been caught earlier, but safe check
+            return None  # Should have been caught earlier, but safe check
 
     try:
         filled_prompt = prompt_template.format(**context)
-        generated_content = generate_content(client, filled_prompt)
+        generated_text = llm_client.generate(filled_prompt)
+        generated_content = process_content(generated_text)
+
         if generated_content:
             return (nid, generated_content)
     except KeyError as e:
         print(f"Error formatting prompt for note {nid}: Missing field {e}")
         return None
-    
+
     return None
 
-def process_deck_ankiconnect(note_type, target_field, prompt_template, dry_run=False):
+
+def process_deck_ankiconnect(
+    note_type, target_field, prompt_template, llm_client, dry_run=False
+):
     print(f"Querying Anki for Note Type: '{note_type}'...")
     query = f'note:"{note_type}"'
     note_ids = invoke_anki("findNotes", query=query)
@@ -323,23 +357,27 @@ def process_deck_ankiconnect(note_type, target_field, prompt_template, dry_run=F
 
     batch_size = 500
     notes_to_process = []
-    
+
     required_fields = extract_required_fields(prompt_template)
 
     # Check first note to verify fields exist
     if note_ids:
         first_info = invoke_anki("notesInfo", notes=note_ids[:1])[0]
         fields = first_info["fields"]
-        
+
         if target_field not in fields:
-            print(f"Error: Target field '{target_field}' not found in note type '{note_type}'.")
+            print(
+                f"Error: Target field '{target_field}' not found in note type '{note_type}'."
+            )
             return
-            
+
         for rf in required_fields:
             if rf not in fields:
-                print(f"Error: Required field '{rf}' (from prompt) not found in note type '{note_type}'.")
+                print(
+                    f"Error: Required field '{rf}' (from prompt) not found in note type '{note_type}'."
+                )
                 return
-        
+
         print(f"Verified fields: Target='{target_field}', Source={required_fields}")
 
     for i in range(0, len(note_ids), batch_size):
@@ -349,7 +387,7 @@ def process_deck_ankiconnect(note_type, target_field, prompt_template, dry_run=F
         for info in infos:
             # We construct a simple dict { "FieldName": "Value" }
             note_fields = {k: v["value"] for k, v in info["fields"].items()}
-            
+
             # Filter logic: if target is empty
             if not note_fields.get(target_field, "").strip():
                 # We store the whole note_fields because we might need multiple source fields
@@ -372,14 +410,24 @@ def process_deck_ankiconnect(note_type, target_field, prompt_template, dry_run=F
         print("No updates needed.")
         return
 
-    client = setup_gemini()
-    max_workers = 15
-    print(f"Starting parallel processing with {max_workers} workers...")
+    # Worker configuration
+    max_workers = (
+        1 if "ollama" in llm_client.model or "local" in llm_client.model else 15
+    )
+    print(f"Starting processing with {max_workers} workers...")
 
     updates = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [
-            executor.submit(process_note_live, client, n["id"], n["fields"], target_field, prompt_template, required_fields)
+            executor.submit(
+                process_note_live,
+                llm_client,
+                n["id"],
+                n["fields"],
+                target_field,
+                prompt_template,
+                required_fields,
+            )
             for n in notes_to_process
         ]
 
@@ -435,21 +483,31 @@ if __name__ == "__main__":
         help="Path to a text file containing the prompt template. Use {FieldName} for placeholders.",
     )
 
+    # LLM Provider Arguments
+    parser.add_argument(
+        "--model",
+        default="gemini/gemini-3-flash-preview",
+        help="LiteLLM model identifier (e.g., 'gemini/gemini-3-flash-preview', 'ollama/qwen3:4b'). Default: 'gemini/gemini-3-flash-preview'",
+    )
+
     args = parser.parse_args()
-    
+
     if os.path.exists(args.prompt_file):
-        with open(args.prompt_file, 'r', encoding='utf-8') as f:
+        with open(args.prompt_file, "r", encoding="utf-8") as f:
             prompt_template = f.read()
     else:
         print(f"Error: Prompt file '{args.prompt_file}' not found.")
         sys.exit(1)
+
+    llm_client = LiteLLMClient(model=args.model)
 
     if args.anki_connect:
         process_deck_ankiconnect(
             note_type=args.note_type,
             target_field=args.target_field,
             prompt_template=prompt_template,
-            dry_run=args.dry_run
+            llm_client=llm_client,
+            dry_run=args.dry_run,
         )
     else:
         if not args.input or not args.output:
@@ -467,5 +525,7 @@ if __name__ == "__main__":
             note_type=args.note_type,
             target_field=args.target_field,
             prompt_template=prompt_template,
-            dry_run=args.dry_run
+            llm_client=llm_client,
+            dry_run=args.dry_run,
         )
+
