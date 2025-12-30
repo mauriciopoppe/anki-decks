@@ -486,8 +486,8 @@ if __name__ == "__main__":
     # LLM Provider Arguments
     parser.add_argument(
         "--model",
-        default="gemini/gemini-3-flash-preview",
-        help="LiteLLM model identifier (e.g., 'gemini/gemini-3-flash-preview', 'ollama/qwen3:4b'). Default: 'gemini/gemini-3-flash-preview'",
+        default="gemini/gemini-2.5-flash",
+        help="LiteLLM model identifier (e.g., 'gemini/gemini-3-flash-preview', 'ollama/qwen3:4b'). Default: 'gemini/gemini-2.5-flash'",
     )
 
     args = parser.parse_args()
@@ -500,6 +500,20 @@ if __name__ == "__main__":
         sys.exit(1)
 
     llm_client = LiteLLMClient(model=args.model)
+
+    # Cost Warning for cloud models
+    api_base = os.environ.get("OPENAI_API_BASE", "") or os.environ.get("OPEN_API_BASE", "")
+    is_local = (
+        any(provider in args.model.lower() for provider in ["ollama", "local", "llama_cpp", "llama-cpp"])
+        or "localhost" in api_base.lower()
+        or "127.0.0.1" in api_base
+    )
+    if not is_local:
+        print("\n" + "!" * 60)
+        print("COST WARNING: You are using a cloud-based model.")
+        print("Processing a large number of cards may incur significant API costs.")
+        print("Consider using a local model via Ollama or llama.cpp for large decks.")
+        print("!" * 60 + "\n")
 
     if args.anki_connect:
         process_deck_ankiconnect(
@@ -528,4 +542,3 @@ if __name__ == "__main__":
             llm_client=llm_client,
             dry_run=args.dry_run,
         )
-

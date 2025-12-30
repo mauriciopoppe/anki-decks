@@ -2,8 +2,8 @@
   /* --- Color Theme --- */
   --light-mode-bg-color: #fffaf0;
   --light-mode-fg-color: #333333;
-  --light-mode-bold: #4660f1;
-  --dark-mode-bold: #fffd9e;
+  --light-mode-bold: #0077cc;
+  --dark-mode-bold: lightblue;
   /* --- Font Sizes (Standard/Desktop) --- */
   --main-font-size: 18px;
   --main-def-size: 14px;

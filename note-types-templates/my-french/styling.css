@@ -2,18 +2,18 @@
   /* --- Color Theme --- */
   --light-mode-bg-color: #fffaf0;
   --light-mode-fg-color: #333333;
-  --light-mode-bold: #4660f1;
-  --dark-mode-bold: #fffd9e;
-  
+  --light-mode-bold: #0077cc;
+  --dark-mode-bold: lightblue;
+
   /* --- Font Sizes --- */
   --main-font-size: 20px;
-  --sentence-font-size: 26px;
+  --sentence-font-size: 20px;
   --info-font-size: 16px;
-  
+
   /* --- Fonts --- */
   --font-serif: "Georgia", serif;
   --font-sans: "Inter", "Helvetica Neue", "Arial", sans-serif;
-  
+
   /* --- Layout --- */
   --max-width: 800px;
 }

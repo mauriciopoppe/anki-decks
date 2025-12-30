@@ -1,6 +1,6 @@
 # Anki Automation Tools
 
-A collection of AI-powered scripts to automate and enhance Anki deck management using Google's Gemini AI.
+A collection of AI-powered scripts to automate and enhance Anki deck management using Google's Gemini AI or your preferred LLM tool.
 
 ## Scripts Overview
 
@@ -62,7 +62,7 @@ python augment_notes.py \
 - `--note-type`: **(Required)** The Anki Note Type to process.
 - `--target-field`: **(Required)** The field to populate (e.g. "Notes", "Mnemonic").
 - `--prompt-file`: **(Required)** Path to a text file containing the custom prompt template. Use `{FieldName}` for placeholders.
-- `--model`: LiteLLM model identifier (e.g., `gemini/gemini-1.5-flash`, `ollama/qwen2.5:4b`). Default: `gemini/gemini-3-flash-preview`.
+- `--model`: LiteLLM model identifier (e.g., `gemini/gemini-1.5-flash`, `ollama/qwen2.5:4b`). Default: `gemini/gemini-2.5-flash`.
 - `--dry-run`: Preview changes without applying them.
 
 ---
@@ -88,3 +88,5 @@ python augment_notes.py \
 ## Disclaimer
 
 **Important:** These scripts were generated with the assistance of Large Language Models (LLMs). Automated modification of Anki databases carries inherent risks. Always **back up your original Anki decks** before use. The authors are not responsible for any data loss or corruption.
+
+**Cost Warning:** Using cloud-based LLM providers (like Google Gemini, OpenAI, etc.) may incur costs. Processing a large number of cards can lead to significant API usage and charges. Always check your provider's pricing and consider using a local model via Ollama or llama.cpp for large-scale operations.

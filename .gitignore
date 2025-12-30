@@ -1,5 +1,8 @@
 temp_augment
 temp_extraction
+french-dictionary/data
+french-dictionary/yomitan_build
+french-dictionary/*.zip
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
