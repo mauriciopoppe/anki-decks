@@ -34,6 +34,46 @@ class LiteLLMClient:
             return None
 
 
+def check_and_warn_costs(model, num_notes):
+    """
+    Warns the user about potential costs for cloud models and asks for confirmation.
+    """
+    if num_notes == 0:
+        return True
+
+    api_base = os.environ.get("OPENAI_API_BASE", "") or os.environ.get(
+        "OPEN_API_BASE", ""
+    )
+    is_local = (
+        any(
+            provider in model.lower()
+            for provider in ["ollama", "local", "llama_cpp", "llama-cpp"]
+        )
+        or "localhost" in api_base.lower()
+        or "127.0.0.1" in api_base
+    )
+
+    if not is_local:
+        print("\n" + "!" * 60)
+        print("COST WARNING: You are using a cloud-based model.")
+        print(f"You are about to process {num_notes} notes.")
+        print("This may incur significant API costs.")
+        print("Consider using a local model via Ollama or llama.cpp for large decks.")
+        print("!" * 60 + "\n")
+
+        try:
+            choice = (
+                input(f"Do you want to continue processing {num_notes} notes? (y/n): ")
+                .strip()
+                .lower()
+            )
+            return choice in ["y", "yes"]
+        except KeyboardInterrupt:
+            print("\nOperation cancelled.")
+            return False
+    return True
+
+
 def setup_environment(apkg_file):
     if os.path.exists(EXTRACT_DIR):
         shutil.rmtree(EXTRACT_DIR)
@@ -217,6 +257,11 @@ def process_deck_file(
             display_text = text.replace("\n", " ")[:80]
             print(f"ID: {nid} | {preview_field}: {display_text}...")
         print("\nDry run complete. No changes made.")
+        conn.close()
+        return
+
+    if not check_and_warn_costs(llm_client.model, len(notes_to_process)):
+        print("Aborting.")
         conn.close()
         return
 
@@ -410,6 +455,10 @@ def process_deck_ankiconnect(
         print("No updates needed.")
         return
 
+    if not check_and_warn_costs(llm_client.model, len(notes_to_process)):
+        print("Aborting.")
+        return
+
     # Worker configuration
     max_workers = (
         1 if "ollama" in llm_client.model or "local" in llm_client.model else 15
@@ -500,20 +549,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     llm_client = LiteLLMClient(model=args.model)
-
-    # Cost Warning for cloud models
-    api_base = os.environ.get("OPENAI_API_BASE", "") or os.environ.get("OPEN_API_BASE", "")
-    is_local = (
-        any(provider in args.model.lower() for provider in ["ollama", "local", "llama_cpp", "llama-cpp"])
-        or "localhost" in api_base.lower()
-        or "127.0.0.1" in api_base
-    )
-    if not is_local:
-        print("\n" + "!" * 60)
-        print("COST WARNING: You are using a cloud-based model.")
-        print("Processing a large number of cards may incur significant API costs.")
-        print("Consider using a local model via Ollama or llama.cpp for large decks.")
-        print("!" * 60 + "\n")
 
     if args.anki_connect:
         process_deck_ankiconnect(
