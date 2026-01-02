@@ -1,7 +1,0 @@
-This is a greenfield project. You will have an anki  deck as input (apkg file) and you need to augment it with useful
-information. The anki deck is known to have the following fields: Text, Frequency, Notes, Image, Tags.
-
-The task: some of the notes don't have anything in their `Notes` field. I want to fill this out based on the `Text`
-field. To do so, I want to use python, any python client (like genanki) and the gemini API.
-
-First come up with a plan for review.

@@ -1,6 +1,6 @@
 # Anki Automation Tools
 
-A collection of AI-powered scripts to automate and enhance Anki deck management using Google's Gemini AI or your preferred LLM tool.
+A collection of AI-powered scripts to automate and enhance Anki deck management. Built with **LiteLLM**, these tools support 100+ LLM providers including Google Gemini, OpenAI, Anthropic, Ollama, and llama.cpp.
 
 ## Scripts Overview
 
@@ -15,7 +15,7 @@ This tool fills empty fields in your Anki cards with AI-generated content based 
 ### Features
 - **Configurable Prompts:** Use `{FieldName}` placeholders in your prompt to dynamically insert content from the card.
 - **Custom Targets:** Specify any field as the destination for the generated content.
-- **AI-Powered:** Uses LiteLLM for intelligent generation, supporting Gemini, Ollama, and more.
+- **AI-Powered:** Uses [LiteLLM](https://docs.litellm.ai/docs/providers) to support virtually any LLM provider (Gemini, OpenAI, Anthropic, Mistral, Ollama, etc.) with a unified interface.
 - **Two Modes:** Modifies `.apkg` files directly or updates via AnkiConnect.
 - **Smart Filtering:** Only targets cards where the destination field is empty.
 - **Parallel Processing:** Efficiently handles large decks.
@@ -71,7 +71,7 @@ python augment_notes.py \
 
 ### Prerequisites
 - Python 3.9+
-- A Google Gemini API Key
+- An API Key for your chosen LLM provider (e.g., `GEMINI_API_KEY`, `OPENAI_API_KEY`, etc.)
 - Anki with the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on.
 
 ### Installation
@@ -80,9 +80,14 @@ python augment_notes.py \
     ```bash
     pip install -r requirements.txt
     ```
-3.  **Set up API Key:**
+3.  **Set up your API Key:**
+    Export the environment variable required by your provider.
     ```bash
+    # For Gemini
     export GEMINI_API_KEY="your_api_key_here"
+    
+    # For OpenAI
+    export OPENAI_API_KEY="your_api_key_here"
     ```
 
 ## Disclaimer

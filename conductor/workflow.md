@@ -20,13 +20,15 @@ All tasks follow a lightweight lifecycle:
 
 3. **Implement:** Write the code to fulfill the task requirements.
 
-4. **Verify (Lightweight):** Ensure the changes work as expected (manual verification is acceptable).
+4. **Run Tests:** Execute relevant automated tests (e.g., `pytest`) to verify the implementation and ensure no regressions.
 
-5. **Document Deviations:** If implementation differs from tech stack:
+5. **Verify (Lightweight):** Ensure the changes work as expected (manual verification is acceptable).
+
+6. **Document Deviations:** If implementation differs from tech stack:
    - Update `tech-stack.md` with new design.
    - Resume implementation.
 
-6. **Get and Record Task:**
+7. **Get and Record Task:**
     - **Update Plan:** Read `plan.md`, find the line for the completed task, update its status from `[~]` to `[x]`.
     - **Write Plan:** Write the updated content back to `plan.md`.
 
