@@ -167,7 +167,10 @@ def process_content(text_content):
     if not text_content:
         return ""
     # Convert Markdown to HTML
-    return markdown.markdown(text_content)
+    html = markdown.markdown(text_content)
+    # Use <b> instead of <strong> for bold
+    html = html.replace("<strong>", "<b>").replace("</strong>", "</b>")
+    return html
 
 
 def process_note_file(

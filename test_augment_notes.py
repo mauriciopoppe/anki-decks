@@ -10,13 +10,22 @@ from augment_notes import (
     get_model_id_from_name,
     process_deck_file,
     process_deck_ankiconnect,
-    LiteLLMClient
+    LiteLLMClient,
+    process_content
 )
 
 TEST_PROMPT = "Analyze: {Text}"
 TEST_TARGET_FIELD = "Notes"
 
 class TestAugmentNotes(unittest.TestCase):
+
+    def test_process_content_bold_conversion(self):
+        """Test that Markdown bold is converted to <b> tags."""
+        markdown_input = "This is **bold** text."
+        # markdown library wrap it in <p>
+        expected_html = "<p>This is <b>bold</b> text.</p>"
+        result = process_content(markdown_input)
+        self.assertEqual(result, expected_html)
 
     def test_get_model_id_from_name_notetypes_table(self):
         """Test resolving ID from 'notetypes' table."""
