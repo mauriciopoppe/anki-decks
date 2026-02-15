@@ -10,6 +10,7 @@ import argparse
 import requests
 import json
 import re
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import litellm
@@ -72,6 +73,36 @@ def check_and_warn_costs(model, num_notes):
             print("\nOperation cancelled.")
             return False
     return True
+
+
+def ask_user_interactive(context, generated_text, target_field):
+    """
+    Shows the user the original context and the generated text,
+    then asks for confirmation (y/n/q).
+    Returns: 'y', 'n', or 'q'
+    """
+    print("\n" + "=" * 40)
+    print("REVIEWING NOTE")
+    print("-" * 20)
+    print("CONTEXT:")
+    for key, value in context.items():
+        print(f"  {key}: {value}")
+    print("-" * 20)
+    print(f"PROPOSED CHANGE FOR '{target_field}':")
+    print(generated_text)
+    print("-" * 20)
+
+    while True:
+        try:
+            choice = (
+                input("Accept change? (y)es / (n)o / (s)kip remaining / (q)uit: ").strip().lower()[:1]
+            )
+            if choice in ["y", "n", "s", "q"]:
+                return choice
+        except KeyboardInterrupt:
+            print("\nQuit signal received.")
+            return "q"
+        print("Invalid choice. Please enter 'y', 'n', 's', or 'q'.")
 
 
 def setup_environment(apkg_file):
@@ -140,7 +171,15 @@ def process_content(text_content):
 
 
 def process_note_file(
-    llm_client, nid, flds, field_map, target_field, prompt_template, required_fields
+    llm_client,
+    nid,
+    flds,
+    tags,
+    field_map,
+    target_field,
+    prompt_template,
+    required_fields,
+    interactive=False,
 ):
     parts = flds.split("\x1f")
 
@@ -176,13 +215,34 @@ def process_note_file(
         try:
             filled_prompt = prompt_template.format(**context)
             generated_text = llm_client.generate(filled_prompt)
+
+            if interactive:
+                choice = ask_user_interactive(context, generated_text, target_field)
+                if choice == "q":
+                    raise KeyboardInterrupt("User quit during interaction")
+                if choice == "s":
+                    return "skip_remaining"
+                if choice == "n":
+                    return None
+
             print(generated_text)
             generated_content = process_content(generated_text)
 
             if generated_content:
                 parts[target_idx] = generated_content
                 new_flds = "\x1f".join(parts)
-                return (new_flds, int(time.time()), nid)
+
+                # Update tags
+                current_tags = tags.strip().split()
+                date_tag = datetime.now().strftime("%Y-%m-%d")
+                augment_tag = "anki_deck_augment"
+                if date_tag not in current_tags:
+                    current_tags.append(date_tag)
+                if augment_tag not in current_tags:
+                    current_tags.append(augment_tag)
+                new_tags_str = " " + " ".join(current_tags) + " "
+
+                return (new_flds, new_tags_str, int(time.time()), nid)
         except KeyError as e:
             print(f"Error formatting prompt for note {nid}: Missing field {e}")
             return None
@@ -198,6 +258,7 @@ def process_deck_file(
     prompt_template,
     llm_client,
     dry_run=False,
+    interactive=False,
 ):
     working_db = setup_environment(apkg_file)
     conn = sqlite3.connect(working_db)
@@ -232,23 +293,23 @@ def process_deck_file(
 
     cursor = conn.cursor()
     print(f"Querying notes for Model ID {resolved_mid}...")
-    cursor.execute("SELECT id, flds FROM notes WHERE mid=?", (resolved_mid,))
+    cursor.execute("SELECT id, flds, tags FROM notes WHERE mid=?", (resolved_mid,))
     notes = cursor.fetchall()
 
     print(f"Found {len(notes)} total notes.")
 
     target_idx = field_map[target_field]
     notes_to_process = []
-    for nid, flds in notes:
+    for nid, flds, tags in notes:
         parts = flds.split("\x1f")
         if len(parts) <= target_idx or not parts[target_idx].strip():
-            notes_to_process.append((nid, flds))
+            notes_to_process.append((nid, flds, tags))
 
     print(f"Found {len(notes_to_process)} notes that require augmentation.")
 
     if dry_run:
         print("\n--- Dry Run: Notes to be updated ---")
-        for nid, flds in notes_to_process:
+        for nid, flds, tags in notes_to_process:
             parts = flds.split("\x1f")
             # Show the first required field as a preview
             preview_field = required_fields[0] if required_fields else target_field
@@ -267,39 +328,63 @@ def process_deck_file(
 
     updates = []
     if notes_to_process:
-        # For local models, fewer workers prevents OOM
-        max_workers = (
-            1 if "ollama" in llm_client.model or "local" in llm_client.model else 15
-        )
-        print(f"Starting processing with {max_workers} workers...")
+        if interactive:
+            print("Starting interactive processing...")
+            try:
+                for nid, flds, tags in notes_to_process:
+                    result = process_note_file(
+                        llm_client,
+                        nid,
+                        flds,
+                        tags,
+                        field_map,
+                        target_field,
+                        prompt_template,
+                        required_fields,
+                        interactive=True,
+                    )
+                    if result == "skip_remaining":
+                        print("\nSkipping all remaining notes...")
+                        break
+                    if result:
+                        updates.append(result)
+            except KeyboardInterrupt:
+                print("\nInteractive session ended early.")
+        else:
+            # For local models, fewer workers prevents OOM
+            max_workers = (
+                1 if "ollama" in llm_client.model or "local" in llm_client.model else 15
+            )
+            print(f"Starting processing with {max_workers} workers...")
 
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [
-                executor.submit(
-                    process_note_file,
-                    llm_client,
-                    nid,
-                    flds,
-                    field_map,
-                    target_field,
-                    prompt_template,
-                    required_fields,
-                )
-                for nid, flds in notes_to_process
-            ]
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = [
+                    executor.submit(
+                        process_note_file,
+                        llm_client,
+                        nid,
+                        flds,
+                        tags,
+                        field_map,
+                        target_field,
+                        prompt_template,
+                        required_fields,
+                    )
+                    for nid, flds, tags in notes_to_process
+                ]
 
-            for future in tqdm(
-                as_completed(futures),
-                total=len(notes_to_process),
-                desc="Augmenting Notes",
-            ):
-                result = future.result()
-                if result:
-                    updates.append(result)
+                for future in tqdm(
+                    as_completed(futures),
+                    total=len(notes_to_process),
+                    desc="Augmenting Notes",
+                ):
+                    result = future.result()
+                    if result:
+                        updates.append(result)
 
     if updates:
         print(f"Updating {len(updates)} notes in database...")
-        cursor.executemany("UPDATE notes SET flds=?, mod=? WHERE id=?", updates)
+        cursor.executemany("UPDATE notes SET flds=?, tags=?, mod=? WHERE id=?", updates)
         conn.commit()
     else:
         print("No updates needed.")
@@ -357,7 +442,14 @@ def invoke_anki(action, **params):
 
 
 def process_note_live(
-    llm_client, nid, note_fields, target_field, prompt_template, required_fields
+    llm_client,
+    nid,
+    note_fields,
+    tags,
+    target_field,
+    prompt_template,
+    required_fields,
+    interactive=False,
 ):
     # note_fields is a dict: { "FieldName": "Value", ... }
 
@@ -376,10 +468,27 @@ def process_note_live(
     try:
         filled_prompt = prompt_template.format(**context)
         generated_text = llm_client.generate(filled_prompt)
+
+        if interactive:
+            choice = ask_user_interactive(context, generated_text, target_field)
+            if choice == "q":
+                raise KeyboardInterrupt("User quit during interaction")
+            if choice == "s":
+                return "skip_remaining"
+            if choice == "n":
+                return None
+
         generated_content = process_content(generated_text)
 
         if generated_content:
-            return (nid, generated_content)
+            new_tags = list(tags)
+            date_tag = datetime.now().strftime("%Y-%m-%d")
+            augment_tag = "anki_deck_augment"
+            if date_tag not in new_tags:
+                new_tags.append(date_tag)
+            if augment_tag not in new_tags:
+                new_tags.append(augment_tag)
+            return (nid, generated_content, new_tags)
     except KeyError as e:
         print(f"Error formatting prompt for note {nid}: Missing field {e}")
         return None
@@ -388,7 +497,12 @@ def process_note_live(
 
 
 def process_deck_ankiconnect(
-    note_type, target_field, prompt_template, llm_client, dry_run=False
+    note_type,
+    target_field,
+    prompt_template,
+    llm_client,
+    dry_run=False,
+    interactive=False,
 ):
     print(f"Querying Anki for Note Type: '{note_type}'...")
     query = f'note:"{note_type}"'
@@ -436,7 +550,13 @@ def process_deck_ankiconnect(
             # Filter logic: if target is empty
             if not note_fields.get(target_field, "").strip():
                 # We store the whole note_fields because we might need multiple source fields
-                notes_to_process.append({"id": info["noteId"], "fields": note_fields})
+                notes_to_process.append(
+                    {
+                        "id": info["noteId"],
+                        "fields": note_fields,
+                        "tags": info["tags"],
+                    }
+                )
 
     print(f"Found {len(notes_to_process)} notes that require augmentation.")
 
@@ -459,41 +579,68 @@ def process_deck_ankiconnect(
         print("Aborting.")
         return
 
-    # Worker configuration
-    max_workers = (
-        1 if "ollama" in llm_client.model or "local" in llm_client.model else 15
-    )
-    print(f"Starting processing with {max_workers} workers...")
-
     updates = []
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [
-            executor.submit(
-                process_note_live,
-                llm_client,
-                n["id"],
-                n["fields"],
-                target_field,
-                prompt_template,
-                required_fields,
-            )
-            for n in notes_to_process
-        ]
 
-        for future in tqdm(
-            as_completed(futures), total=len(notes_to_process), desc="Augmenting Notes"
-        ):
-            result = future.result()
-            if result:
-                updates.append(result)
+    if interactive:
+        print("Starting interactive processing...")
+        try:
+            for n in notes_to_process:
+                result = process_note_live(
+                    llm_client,
+                    n["id"],
+                    n["fields"],
+                    n["tags"],
+                    target_field,
+                    prompt_template,
+                    required_fields,
+                    interactive=True,
+                )
+                if result == "skip_remaining":
+                    print("\nSkipping all remaining notes...")
+                    break
+                if result:
+                    updates.append(result)
+        except KeyboardInterrupt:
+            print("\nInteractive session ended early.")
+    else:
+        # Worker configuration
+        max_workers = (
+            1 if "ollama" in llm_client.model or "local" in llm_client.model else 15
+        )
+        print(f"Starting processing with {max_workers} workers...")
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [
+                executor.submit(
+                    process_note_live,
+                    llm_client,
+                    n["id"],
+                    n["fields"],
+                    n["tags"],
+                    target_field,
+                    prompt_template,
+                    required_fields,
+                )
+                for n in notes_to_process
+            ]
+
+            for future in tqdm(
+                as_completed(futures),
+                total=len(notes_to_process),
+                desc="Augmenting Notes",
+            ):
+                result = future.result()
+                if result:
+                    updates.append(result)
 
     if updates:
         print(f"Updating {len(updates)} notes via AnkiConnect...")
-        for nid, new_content in tqdm(updates, desc="Sending updates to Anki"):
+        for nid, new_content, new_tags in tqdm(updates, desc="Sending updates to Anki"):
             invoke_anki(
                 "updateNoteFields",
                 note={"id": nid, "fields": {target_field: new_content}},
             )
+            invoke_anki("addTags", notes=[nid], tags=" ".join(new_tags))
         print("Done!")
     else:
         print("No notes generated.")
@@ -520,6 +667,12 @@ if __name__ == "__main__":
         "--dry-run",
         action="store_true",
         help="Identify and list notes without processing",
+    )
+    parser.add_argument(
+        "--interactive",
+        "-i",
+        action="store_true",
+        help="Process notes interactively, reviewing each AI-generated response",
     )
     parser.add_argument(
         "--target-field",
@@ -549,6 +702,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     llm_client = LiteLLMClient(model=args.model)
+    print(f"Using model: {args.model}")
 
     if args.anki_connect:
         process_deck_ankiconnect(
@@ -557,6 +711,7 @@ if __name__ == "__main__":
             prompt_template=prompt_template,
             llm_client=llm_client,
             dry_run=args.dry_run,
+            interactive=args.interactive,
         )
     else:
         if not args.input or not args.output:
@@ -576,4 +731,5 @@ if __name__ == "__main__":
             prompt_template=prompt_template,
             llm_client=llm_client,
             dry_run=args.dry_run,
+            interactive=args.interactive,
         )

@@ -12,11 +12,13 @@ Add an interactive mode to the `augment_notes.py` script. This mode allows users
 - **User Actions:**
     - `y` (Accept): Save the change to Anki and proceed to the next note.
     - `n` (Skip): Discard the change and proceed to the next note.
+    - `s` (Skip remaining): Discard the current change and skip all subsequent notes in the current session.
     - `q` (Quit): Stop the script entirely.
-- **Strict Interaction:** No "bulk apply" or "bulk skip" options; each note requires an individual decision.
+- **Strict Interaction:** Each note requires an individual decision unless the user chooses to skip all remaining notes.
 
 ## Non-Functional Requirements
 - **Console Readability:** Use clear formatting (e.g., separators or basic colors if supported) to distinguish between notes and summaries in the terminal.
+- **Startup Information:** Print the name of the LLM model being used at the start of the execution.
 - **Graceful Termination:** Ensure that quitting the interactive mode handles any necessary cleanup (though current script architecture is mostly stateless per note).
 
 ## Acceptance Criteria

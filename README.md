@@ -18,6 +18,7 @@ This tool fills empty fields in your Anki cards with AI-generated content based 
 - **AI-Powered:** Uses [LiteLLM](https://docs.litellm.ai/docs/providers) to support virtually any LLM provider (Gemini, OpenAI, Anthropic, Mistral, Ollama, etc.) with a unified interface.
 - **Two Modes:** Modifies `.apkg` files directly or updates via AnkiConnect.
 - **Smart Filtering:** Only targets cards where the destination field is empty.
+- **Automatic Tagging:** Adds the current date (YYYY-MM-DD) and `anki_deck_augment` tag to modified notes for easy tracking.
 - **Parallel Processing:** Efficiently handles large decks.
 
 ### Usage

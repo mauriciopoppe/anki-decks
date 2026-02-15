@@ -94,11 +94,11 @@ class TestAugmentNotes(unittest.TestCase):
         mock_get_field_map.return_value = {"Text": 0, "Notes": 2}
 
         # Mock notes query
-        # ID, Flds
+        # ID, Flds, Tags
         mock_cursor.fetchall.return_value = [
-            (1, "Text1\x1fExtra\x1f\x1fImage"), # Empty Note
-            (2, "Text2\x1fExtra\x1fExisting Note\x1fImage"), # Filled Note
-            (3, "Text3\x1fExtra\x1f\x1fImage"), # Empty Note
+            (1, "Text1\x1fExtra\x1f\x1fImage", "tag1"), # Empty Note
+            (2, "Text2\x1fExtra\x1fExisting Note\x1fImage", "tag2"), # Filled Note
+            (3, "Text3\x1fExtra\x1f\x1fImage", "tag3"), # Empty Note
         ]
 
         mock_llm_client = MagicMock()
@@ -119,7 +119,7 @@ class TestAugmentNotes(unittest.TestCase):
         mock_get_field_map.assert_called_with(mock_conn, 12345)
         
         # Should query for the resolved ID
-        mock_cursor.execute.assert_called_with("SELECT id, flds FROM notes WHERE mid=?", (12345,))
+        mock_cursor.execute.assert_called_with("SELECT id, flds, tags FROM notes WHERE mid=?", (12345,))
         
         # In dry run, we should NOT see any updates
         mock_cursor.executemany.assert_not_called()
@@ -145,21 +145,24 @@ class TestAugmentNotes(unittest.TestCase):
                         "fields": {
                             "Text": {"value": "Text1", "order": 0},
                             "Notes": {"value": "", "order": 2}
-                        }
+                        },
+                        "tags": ["tag1"]
                     },
                     {
                         "noteId": 2,
                         "fields": {
                             "Text": {"value": "Text2", "order": 0},
                             "Notes": {"value": "Existing", "order": 2}
-                        }
+                        },
+                        "tags": ["tag2"]
                     },
                     {
                         "noteId": 3,
                         "fields": {
                             "Text": {"value": "Text3", "order": 0},
                             "Notes": {"value": "", "order": 2}
-                        }
+                        },
+                        "tags": ["tag3"]
                     }
                 ]
             return None
@@ -183,6 +186,151 @@ class TestAugmentNotes(unittest.TestCase):
         calls = mock_invoke_anki.call_args_list
         update_calls = [c for c in calls if c[0][0] == 'updateNoteFields']
         self.assertEqual(len(update_calls), 0)
+
+    @patch('augment_notes.input')
+    @patch('augment_notes.LiteLLMClient.generate')
+    def test_process_note_file_interactive_accept(self, mock_generate, mock_input):
+        """Test interactive mode: user accepts the change."""
+        from augment_notes import process_note_file
+        
+        mock_generate.return_value = "Generated Content"
+        mock_input.return_value = "y"
+        
+        llm_client = LiteLLMClient(model="local")
+        field_map = {"Text": 0, "Notes": 1}
+        # nid, flds, tags, field_map, target_field, prompt_template, required_fields, interactive
+        result = process_note_file(
+            llm_client,
+            1,
+            "Original Text\x1f",
+            "tags",
+            field_map,
+            "Notes",
+            "Analyze: {Text}",
+            ["Text"],
+            interactive=True
+        )
+        
+        # Should return the update tuple
+        self.assertIsNotNone(result)
+        self.assertEqual(result[0], "Original Text\x1f<p>Generated Content</p>")
+        self.assertEqual(result[3], 1)
+
+    @patch('augment_notes.input')
+    @patch('augment_notes.LiteLLMClient.generate')
+    def test_process_note_file_interactive_skip(self, mock_generate, mock_input):
+        """Test interactive mode: user skips the change."""
+        from augment_notes import process_note_file
+        
+        mock_generate.return_value = "Generated Content"
+        mock_input.return_value = "n"
+        
+        llm_client = LiteLLMClient(model="local")
+        field_map = {"Text": 0, "Notes": 1}
+        result = process_note_file(
+            llm_client,
+            1,
+            "Original Text\x1f",
+            "tags",
+            field_map,
+            "Notes",
+            "Analyze: {Text}",
+            ["Text"],
+            interactive=True
+        )
+        
+        # Should return None (skipped)
+        self.assertIsNone(result)
+
+    @patch('augment_notes.input')
+    @patch('augment_notes.LiteLLMClient.generate')
+    def test_process_note_file_interactive_skip_remaining(self, mock_generate, mock_input):
+        """Test interactive mode: user skips remaining notes."""
+        from augment_notes import process_note_file
+        
+        mock_generate.return_value = "Generated Content"
+        mock_input.return_value = "s"
+        
+        llm_client = LiteLLMClient(model="local")
+        field_map = {"Text": 0, "Notes": 1}
+        result = process_note_file(
+            llm_client,
+            1,
+            "Original Text\x1f",
+            "tags",
+            field_map,
+            "Notes",
+            "Analyze: {Text}",
+            ["Text"],
+            interactive=True
+        )
+        
+        # Should return "skip_remaining"
+        self.assertEqual(result, "skip_remaining")
+
+    @patch('augment_notes.input')
+    @patch('augment_notes.LiteLLMClient.generate')
+    def test_process_note_file_interactive_quit(self, mock_generate, mock_input):
+        """Test interactive mode: user quits."""
+        from augment_notes import process_note_file
+        
+        mock_generate.return_value = "Generated Content"
+        mock_input.return_value = "q"
+        
+        llm_client = LiteLLMClient(model="local")
+        field_map = {"Text": 0, "Notes": 1}
+        
+        with self.assertRaises(KeyboardInterrupt):
+            process_note_file(
+                llm_client,
+                1,
+                "Original Text\x1f",
+                "tags",
+                field_map,
+                "Notes",
+                "Analyze: {Text}",
+                ["Text"],
+                interactive=True
+            )
+
+    @patch('augment_notes.setup_environment')
+    @patch('sqlite3.connect')
+    @patch('augment_notes.get_model_id_from_name')
+    @patch('augment_notes.get_field_map')
+    @patch('augment_notes.process_note_file')
+    @patch('augment_notes.check_and_warn_costs')
+    @patch('shutil.copy')
+    @patch('augment_notes.zstd.ZstdCompressor')
+    @patch('builtins.open')
+    @patch('zipfile.ZipFile')
+    def test_process_deck_file_interactive(self, mock_zip, mock_open, mock_zstd, mock_copy, mock_warn, mock_process_note, mock_get_field_map, mock_get_mid, mock_connect, mock_setup_env):
+        """Test process_deck_file in interactive mode."""
+        mock_warn.return_value = True
+        mock_setup_env.return_value = "dummy.db"
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_get_mid.return_value = 12345
+        mock_get_field_map.return_value = {"Text": 0, "Notes": 1}
+        mock_cursor.fetchall.return_value = [(1, "Text1\x1f", "tags")]
+        
+        # Mocking process_note_file to return an update
+        mock_process_note.return_value = ("Text1\x1fNotes1", "tags", 123, 1)
+
+        process_deck_file(
+            "input.apkg", "output.apkg", "Cloze", "Notes", "Prompt",
+            MagicMock(), interactive=True
+        )
+
+        # Should NOT use ThreadPoolExecutor
+        # Should call process_note_file directly
+        mock_process_note.assert_called_once()
+        self.assertEqual(mock_process_note.call_args[1]['interactive'], True)
+        
+        # Should update database
+        mock_cursor.executemany.assert_called_once()
+        mock_conn.commit.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()

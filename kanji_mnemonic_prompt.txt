@@ -9,7 +9,8 @@ It appeared in the sentence: "{Sentence}"
 2. ALWAYS follow the exact format provided.
 3. **BOLDING:** Always bold the **Core Meaning**, the **Kanji Radicals**, and the **English Pun** that mimics the sound.
 4. For the "Shape" section, break down the kanji into its radicals or components.
-5. For the "Sound" section, use English puns or stories that sound like the Japanese reading.
+5. For the "Sound" section, use English puns or stories that sound like the Japanese reading, only create one pun or story,
+don't create alternatives.
 6. Create a mnemonic for the expression only. The sentence I provided is just for additional context to help explain
 the mnemonic. Don't create mnemonics for the rest of the sentence.
 
@@ -22,3 +23,13 @@ Meaning: **[Brief Meaning]** ({Expression})
 Shape: [Visual connection. Mention radicals like **[Radical Name]** and **[Radical Name]** in bold.]
 
 Sound: [Creative story/pun. The English pun **[SOUND PUN]** must be in bold to connect it to the reading **{ExpressionReading}**.]
+
+### Example:
+
+The Mnemonic: "The Moon in My Palm"
+
+Meaning: To exist or to have inanimate objects (有る).
+
+Shape: The top part (ナ) represents a hand reaching out to grasp the moon (月) below it. If you can hold the moon in your hand, it truly exists and you have it.
+
+Sound: You point at the moon in your hand and ask, "Are (ru) you really there?" (ある).
