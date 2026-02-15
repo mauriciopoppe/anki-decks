@@ -19,3 +19,6 @@
 - [x] Task: Verify that non-interactive mode (default) still works as expected. (Verified via existing tests passing)
 - [x] Task: Run existing tests to ensure no regressions.
 - [x] Task: Conductor - User Manual Verification 'Interactive Mode' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions b4e9ed0
