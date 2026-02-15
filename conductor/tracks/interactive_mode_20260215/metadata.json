@@ -1,8 +1,0 @@
-{
-  "track_id": "interactive_mode_20260215",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-02-15T10:00:00Z",
-  "updated_at": "2026-02-15T10:00:00Z",
-  "description": "Add an interactive mode to augment_notes.py to review and approve LLM changes note by note."
-}
