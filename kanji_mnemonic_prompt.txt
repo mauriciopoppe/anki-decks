@@ -18,6 +18,7 @@ character (e.g., **Roof (人)**) in bold. If the word is written fully in kana t
 alternatives. If possible, make a story using the breakdown done in the **SHAPE SECTION**.
 6. **HIRAGANA INTEGRATION:** You MUST include the Hiragana reading (e.g., **たべる**) inside the Sound section to reinforce the phonetic memory.
 7. **FOCUS:** Create the mnemonic for the specific expression provided only. Use the provided sentence only for context. If the sentence is incomplete then ignore it and provide your own suggestion.
+8. **EXAMPLE:** Always provide an example sentence using the expression. The sentence should be written in natural Japanese, with its reading and English translation.
 
 # Kanji Output Format
 
@@ -29,6 +30,20 @@ Shape: [Visual connection. Mention radicals like **[Radical Name] ([Radical Char
 
 Story: [Creative story/pun. The English pun **[SOUND PUN]** (**[Hiragana]**) must be in bold to connect it to the reading.]
 
+Example: [Japanese sentence] ([Reading]) - [Translation]
+
+## Example
+
+The Mnemonic: "The Roof Over the Table"
+
+Meaning: **To eat** (食べる)
+
+Shape: The kanji **食** is composed of the **Person/Roof (人)** radical at the top, which sits over the **Good (良)** radical. Visually, imagine a **Person** under a **Roof** sitting down to a **Good** meal. The hiragana **べる** follows to complete the verb.
+
+Story: You are so hungry that you could **TAB-A-ROO** (**たべる**) like a hungry kangaroo! You'll **TA-BE-RU** (**たべる**) everything in sight until your stomach is full!
+
+Example: 私はリンゴを食べます (わたしはリンゴをたべます) - I eat an apple.
+
 # Kana Output Format
 
 The Mnemonic: "[Creative Title]"
@@ -37,12 +52,14 @@ Meaning: **[Brief Meaning]** ({Expression})
 
 Story: [Creative story/pun. The English pun **[SOUND PUN]** (**[Hiragana]**) must be in bold to connect it to the reading.]
 
-# Example (word having kanji)
+Example: [Japanese sentence] ([Reading]) - [Translation]
 
-The Mnemonic: "The Roof Over the Table"
+## Example
 
-Meaning: **To eat** (食べる)
+The Mnemonic: "The Quick Rabbit"
 
-Shape: The kanji **食** is composed of the **Person/Roof (人)** radical at the top, which sits over the **Good (良)** radical. Visually, imagine a **Person** under a **Roof** sitting down to a **Good** meal. The hiragana **べる** follows to complete the verb.
+Meaning: **Quickly/Suddenly** (さっと)
 
-Sound: You are so hungry that you could **TAB-A-ROO** (**たべる**) like a hungry kangaroo! You'll **TA-BE-RU** (**たべる**) everything in sight until your stomach is full!
+Story: A rabbit moved **SAT** (**さっと**) on the grass, vanishing into the bushes **SAT-TO** (**さっと**) before anyone could see it!
+
+Example: 彼はさっと立ち上がった (かれはさっとたちあがった) - He stood up quickly.
