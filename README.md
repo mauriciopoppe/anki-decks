@@ -16,7 +16,8 @@ This tool fills empty fields in your Anki cards with AI-generated content based 
 - **Configurable Prompts:** Use `{FieldName}` placeholders in your prompt to dynamically insert content from the card.
 - **Custom Targets:** Specify any field as the destination for the generated content.
 - **AI-Powered:** Uses [LiteLLM](https://docs.litellm.ai/docs/providers) to support virtually any LLM provider (Gemini, OpenAI, Anthropic, Mistral, Ollama, etc.) with a unified interface.
-- **Two Modes:** Modifies `.apkg` files directly or updates via AnkiConnect.
+- **AnkiConnect Integration:** Seamlessly update a running Anki instance, allowing for immediate feedback and iterative deck improvement.
+- **Interactive Review:** Optionally review each AI-generated response before applying it (y/n/s/q).
 - **Smart Filtering:** Only targets cards where the destination field is empty.
 - **Automatic Tagging:** Adds the current date (YYYY-MM-DD) and `anki_deck_augment` tag to modified notes for easy tracking.
 - **Parallel Processing:** Efficiently handles large decks.
@@ -56,13 +57,22 @@ python augment_notes.py \
   --prompt-file "./kanji_mnemonic_prompt.txt"
 ```
 
+### Interactive Mode
+
+The interactive mode (`--interactive` or `-i`) allows you to review each AI-generated response before it's applied to your deck. This is useful for ensuring quality and fine-tuning your prompts.
+
+When prompted, you can choose:
+- `y` (yes): Accept the generated text and save it to the card.
+- `n` (no): Reject the generated text; the card's target field will remain empty.
+- `s` (skip): Skip the current card and all remaining cards in this session.
+- `q` (quit): Immediately stop the script.
+
 ### Command Line Arguments
 
-- `--anki-connect`: Use AnkiConnect to update a running Anki instance.
-- `--input`, `--output`: Input and output `.apkg` files (for file mode).
 - `--note-type`: **(Required)** The Anki Note Type to process.
 - `--target-field`: **(Required)** The field to populate (e.g. "Notes", "Mnemonic").
 - `--prompt-file`: **(Required)** Path to a text file containing the custom prompt template. Use `{FieldName}` for placeholders.
+- `--interactive`, `-i`: (Optional) Process notes interactively, reviewing each AI-generated response.
 - `--model`: LiteLLM model identifier (e.g., `gemini/gemini-1.5-flash`, `ollama/qwen2.5:4b`). Default: `gemini/gemini-2.5-flash`.
 - `--dry-run`: Preview changes without applying them.
 

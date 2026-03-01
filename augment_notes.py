@@ -1,9 +1,4 @@
-import sqlite3
 import os
-import zipfile
-import shutil
-import zstandard as zstd
-import time
 import sys
 import markdown
 import argparse
@@ -14,9 +9,6 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import litellm
-
-# Configuration
-EXTRACT_DIR = "temp_augment"
 
 
 class LiteLLMClient:
@@ -95,7 +87,9 @@ def ask_user_interactive(context, generated_text, target_field):
     while True:
         try:
             choice = (
-                input("Accept change? (y)es / (n)o / (s)kip remaining / (q)uit: ").strip().lower()[:1]
+                input("Accept change? (y)es / (n)o / (s)kip remaining / (q)uit: ")
+                .strip()
+                .lower()[:1]
             )
             if choice in ["y", "n", "s", "q"]:
                 return choice
@@ -103,57 +97,6 @@ def ask_user_interactive(context, generated_text, target_field):
             print("\nQuit signal received.")
             return "q"
         print("Invalid choice. Please enter 'y', 'n', 's', or 'q'.")
-
-
-def setup_environment(apkg_file):
-    if os.path.exists(EXTRACT_DIR):
-        shutil.rmtree(EXTRACT_DIR)
-    os.makedirs(EXTRACT_DIR)
-
-    print(f"Extracting {apkg_file}...")
-    with zipfile.ZipFile(apkg_file, "r") as zip_ref:
-        zip_ref.extractall(EXTRACT_DIR)
-
-    # We will work on a single database file and then replicate it
-    db_path_21b = os.path.join(EXTRACT_DIR, "collection.anki21b")
-    db_path_2 = os.path.join(EXTRACT_DIR, "collection.anki2")
-
-    working_db_path = os.path.join(EXTRACT_DIR, "collection_working.db")
-
-    if os.path.exists(db_path_21b):
-        print("Decompressing collection.anki21b to use as working DB...")
-        dctx = zstd.ZstdDecompressor()
-        with open(db_path_21b, "rb") as ifh, open(working_db_path, "wb") as ofh:
-            dctx.copy_stream(ifh, ofh)
-    else:
-        print("Using collection.anki2 as working DB...")
-        shutil.copy(db_path_2, working_db_path)
-
-    return working_db_path
-
-
-def get_model_id_from_name(conn, model_name):
-    """
-    Resolves a model name to an ID by querying the 'notetypes' table.
-    """
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name FROM notetypes")
-    all_types = cursor.fetchall()
-    for nid, name in all_types:
-        if name == model_name:
-            return nid
-    return None
-
-
-def get_field_map(conn, ntid):
-    """
-    Retrieves a mapping of field name to index for the given note type ID.
-    Returns: { "FieldName": index, ... }
-    """
-    cursor = conn.cursor()
-    cursor.execute("SELECT name, ord FROM fields WHERE ntid=?", (ntid,))
-    fields = cursor.fetchall()
-    return {name: ord_val for name, ord_val in fields}
 
 
 def extract_required_fields(prompt_template):
@@ -171,255 +114,6 @@ def process_content(text_content):
     # Use <b> instead of <strong> for bold
     html = html.replace("<strong>", "<b>").replace("</strong>", "</b>")
     return html
-
-
-def process_note_file(
-    llm_client,
-    nid,
-    flds,
-    tags,
-    field_map,
-    target_field,
-    prompt_template,
-    required_fields,
-    interactive=False,
-):
-    parts = flds.split("\x1f")
-
-    # Check if target field exists in the map
-    if target_field not in field_map:
-        return None
-
-    target_idx = field_map[target_field]
-
-    # Ensure we have enough fields
-    max_idx = max(field_map.values())
-    while len(parts) <= max_idx:
-        parts.append("")
-
-    current_val = parts[target_idx]
-
-    # Only fill if empty
-    if not current_val.strip():
-        # Build context for prompt
-        context = {}
-        missing_field = False
-        for field in required_fields:
-            if field in field_map:
-                context[field] = parts[field_map[field]]
-            else:
-                # Required field not found in note type
-                missing_field = True
-                break
-
-        if missing_field:
-            return None
-
-        try:
-            filled_prompt = prompt_template.format(**context)
-            generated_text = llm_client.generate(filled_prompt)
-
-            if interactive:
-                choice = ask_user_interactive(context, generated_text, target_field)
-                if choice == "q":
-                    raise KeyboardInterrupt("User quit during interaction")
-                if choice == "s":
-                    return "skip_remaining"
-                if choice == "n":
-                    return None
-
-            print(generated_text)
-            generated_content = process_content(generated_text)
-
-            if generated_content:
-                parts[target_idx] = generated_content
-                new_flds = "\x1f".join(parts)
-
-                # Update tags
-                current_tags = tags.strip().split()
-                date_tag = datetime.now().strftime("%Y-%m-%d")
-                augment_tag = "anki_deck_augment"
-                if date_tag not in current_tags:
-                    current_tags.append(date_tag)
-                if augment_tag not in current_tags:
-                    current_tags.append(augment_tag)
-                new_tags_str = " " + " ".join(current_tags) + " "
-
-                return (new_flds, new_tags_str, int(time.time()), nid)
-        except KeyError as e:
-            print(f"Error formatting prompt for note {nid}: Missing field {e}")
-            return None
-
-    return None
-
-
-def process_deck_file(
-    apkg_file,
-    output_file,
-    note_type,
-    target_field,
-    prompt_template,
-    llm_client,
-    dry_run=False,
-    interactive=False,
-):
-    working_db = setup_environment(apkg_file)
-    conn = sqlite3.connect(working_db)
-
-    resolved_mid = get_model_id_from_name(conn, note_type)
-    if not resolved_mid:
-        print(f"Error: Could not find model with name '{note_type}' in the database.")
-        conn.close()
-        sys.exit(1)
-    print(f"Resolved model name '{note_type}' to ID {resolved_mid}")
-
-    field_map = get_field_map(conn, resolved_mid)
-
-    if target_field not in field_map:
-        print(f"Error: Target field '{target_field}' not found in model '{note_type}'.")
-        print(f"Available fields: {list(field_map.keys())}")
-        conn.close()
-        sys.exit(1)
-
-    required_fields = extract_required_fields(prompt_template)
-    for field in required_fields:
-        if field not in field_map:
-            print(
-                f"Error: Required field '{field}' (from prompt) not found in model '{note_type}'."
-            )
-            print(f"Available fields: {list(field_map.keys())}")
-            conn.close()
-            sys.exit(1)
-
-    print(f"Target Field: {target_field} (Index {field_map[target_field]})")
-    print(f"Required Source Fields: {required_fields}")
-
-    cursor = conn.cursor()
-    print(f"Querying notes for Model ID {resolved_mid}...")
-    cursor.execute("SELECT id, flds, tags FROM notes WHERE mid=?", (resolved_mid,))
-    notes = cursor.fetchall()
-
-    print(f"Found {len(notes)} total notes.")
-
-    target_idx = field_map[target_field]
-    notes_to_process = []
-    for nid, flds, tags in notes:
-        parts = flds.split("\x1f")
-        if len(parts) <= target_idx or not parts[target_idx].strip():
-            notes_to_process.append((nid, flds, tags))
-
-    print(f"Found {len(notes_to_process)} notes that require augmentation.")
-
-    if dry_run:
-        print("\n--- Dry Run: Notes to be updated ---")
-        for nid, flds, tags in notes_to_process:
-            parts = flds.split("\x1f")
-            # Show the first required field as a preview
-            preview_field = required_fields[0] if required_fields else target_field
-            preview_idx = field_map.get(preview_field, 0)
-            text = parts[preview_idx] if len(parts) > preview_idx else "[Empty]"
-            display_text = text.replace("\n", " ")[:80]
-            print(f"ID: {nid} | {preview_field}: {display_text}...")
-        print("\nDry run complete. No changes made.")
-        conn.close()
-        return
-
-    if not check_and_warn_costs(llm_client.model, len(notes_to_process)):
-        print("Aborting.")
-        conn.close()
-        return
-
-    updates = []
-    if notes_to_process:
-        if interactive:
-            print("Starting interactive processing...")
-            try:
-                for nid, flds, tags in notes_to_process:
-                    result = process_note_file(
-                        llm_client,
-                        nid,
-                        flds,
-                        tags,
-                        field_map,
-                        target_field,
-                        prompt_template,
-                        required_fields,
-                        interactive=True,
-                    )
-                    if result == "skip_remaining":
-                        print("\nSkipping all remaining notes...")
-                        break
-                    if result:
-                        updates.append(result)
-            except KeyboardInterrupt:
-                print("\nInteractive session ended early.")
-        else:
-            # For local models, fewer workers prevents OOM
-            max_workers = (
-                1 if "ollama" in llm_client.model or "local" in llm_client.model else 15
-            )
-            print(f"Starting processing with {max_workers} workers...")
-
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                futures = [
-                    executor.submit(
-                        process_note_file,
-                        llm_client,
-                        nid,
-                        flds,
-                        tags,
-                        field_map,
-                        target_field,
-                        prompt_template,
-                        required_fields,
-                    )
-                    for nid, flds, tags in notes_to_process
-                ]
-
-                for future in tqdm(
-                    as_completed(futures),
-                    total=len(notes_to_process),
-                    desc="Augmenting Notes",
-                ):
-                    result = future.result()
-                    if result:
-                        updates.append(result)
-
-    if updates:
-        print(f"Updating {len(updates)} notes in database...")
-        cursor.executemany("UPDATE notes SET flds=?, tags=?, mod=? WHERE id=?", updates)
-        conn.commit()
-    else:
-        print("No updates needed.")
-
-    conn.close()
-
-    # Repackaging
-    print("Preparing output files...")
-    shutil.copy(working_db, os.path.join(EXTRACT_DIR, "collection.anki2"))
-    print("Compressing to collection.anki21b...")
-    cctx = zstd.ZstdCompressor()
-    with (
-        open(working_db, "rb") as ifh,
-        open(os.path.join(EXTRACT_DIR, "collection.anki21b"), "wb") as ofh,
-    ):
-        cctx.copy_stream(ifh, ofh)
-
-    print(f"Creating {output_file}...")
-    with zipfile.ZipFile(output_file, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for root, dirs, files in os.walk(EXTRACT_DIR):
-            for file in files:
-                if file in [
-                    "collection_working.db",
-                    "collection_legacy.anki2",
-                    "collection_new.anki2",
-                ]:
-                    continue
-                file_path = os.path.join(root, file)
-                arcname = os.path.relpath(file_path, EXTRACT_DIR)
-                zipf.write(file_path, arcname)
-
-    print(f"Done! Created {output_file}")
 
 
 # --- AnkiConnect Integration ---
@@ -651,21 +345,14 @@ def process_deck_ankiconnect(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Augment Anki deck with AI-generated content."
+        description="Augment Anki deck with AI-generated content using AnkiConnect."
     )
 
-    parser.add_argument(
-        "--anki-connect",
-        action="store_true",
-        help="Use AnkiConnect to update running Anki instance",
-    )
     parser.add_argument(
         "--note-type",
         required=True,
         help="Anki Model (Note Type) Name",
     )
-    parser.add_argument("--input", help="Input .apkg file path")
-    parser.add_argument("--output", help="Output .apkg file path")
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -707,32 +394,11 @@ if __name__ == "__main__":
     llm_client = LiteLLMClient(model=args.model)
     print(f"Using model: {args.model}")
 
-    if args.anki_connect:
-        process_deck_ankiconnect(
-            note_type=args.note_type,
-            target_field=args.target_field,
-            prompt_template=prompt_template,
-            llm_client=llm_client,
-            dry_run=args.dry_run,
-            interactive=args.interactive,
-        )
-    else:
-        if not args.input or not args.output:
-            print(
-                "Error: --input and --output are required when not using --anki-connect."
-            )
-            sys.exit(1)
-        if not os.path.exists(args.input):
-            print(f"Error: Input file '{args.input}' not found.")
-            sys.exit(1)
-
-        process_deck_file(
-            args.input,
-            args.output,
-            note_type=args.note_type,
-            target_field=args.target_field,
-            prompt_template=prompt_template,
-            llm_client=llm_client,
-            dry_run=args.dry_run,
-            interactive=args.interactive,
-        )
+    process_deck_ankiconnect(
+        note_type=args.note_type,
+        target_field=args.target_field,
+        prompt_template=prompt_template,
+        llm_client=llm_client,
+        dry_run=args.dry_run,
+        interactive=args.interactive,
+    )

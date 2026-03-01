@@ -6,7 +6,6 @@
 - **AnkiConnect:** The bridge for interacting with a running Anki instance via its RESTful API.
 
 ## Data and File Handling
-- **zstandard (zstd):** Required for compressing and decompressing modern Anki `.apkg` and `.colpkg` files.
 - **requests:** Used for making HTTP requests to the AnkiConnect API.
 - **tqdm:** Used for displaying progress bars during long-running operations like data downloads.
 - **Lexique 3:** Used as the primary linguistic database for French lemmatization.

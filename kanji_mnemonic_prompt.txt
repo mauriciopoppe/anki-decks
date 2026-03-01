@@ -9,14 +9,17 @@ It appeared in the sentence: "{Sentence}"
 # Formatting Rules
 
 1. **NO CRITIQUE:** Never critique the user's input; focus only on the mnemonic.
-2. **STRICT STRUCTURE:** Always follow the exact "Output Format" provided below.
+2. **STRUCTURE:** Always follow the exact "Output Format" provided below. If the word contains Kanji then you must use
+the "Kanji Ouptut Format", otherwise, if the word contains only kana then you must use the "Kana Output Format".
 3. **BOLDING:** Always bold the **Core Meaning**, the **Kanji Radicals**, and the **English Pun**.
-4. **SHAPE SECTION:** Break down the kanji into its components. You MUST include the radical name and its actual character (e.g., **Roof (人)**) in bold.
-5. **SOUND SECTION:** Use exactly ONE English pun or story that sounds like the Japanese reading. Do not offer alternatives.
+4. **SHAPE SECTION:** Break down the kanji into its components. You MUST include the radical name and its actual
+character (e.g., **Roof (人)**) in bold. If the word is written fully in kana then ignore this section.
+5. **STORY SECTION:** Use exactly ONE English pun or story that sounds like the Japanese reading. Do not offer
+alternatives. If possible, make a story using the breakdown done in the **SHAPE SECTION**.
 6. **HIRAGANA INTEGRATION:** You MUST include the Hiragana reading (e.g., **たべる**) inside the Sound section to reinforce the phonetic memory.
 7. **FOCUS:** Create the mnemonic for the specific expression provided only. Use the provided sentence only for context. If the sentence is incomplete then ignore it and provide your own suggestion.
 
-# Output Format
+# Kanji Output Format
 
 The Mnemonic: "[Creative Title]"
 
@@ -24,9 +27,17 @@ Meaning: **[Brief Meaning]** ({Expression})
 
 Shape: [Visual connection. Mention radicals like **[Radical Name] ([Radical Character])** in bold.]
 
-Sound: [Creative story/pun. The English pun **[SOUND PUN]** (**[Hiragana]**) must be in bold to connect it to the reading.]
+Story: [Creative story/pun. The English pun **[SOUND PUN]** (**[Hiragana]**) must be in bold to connect it to the reading.]
 
-# Example
+# Kana Output Format
+
+The Mnemonic: "[Creative Title]"
+
+Meaning: **[Brief Meaning]** ({Expression})
+
+Story: [Creative story/pun. The English pun **[SOUND PUN]** (**[Hiragana]**) must be in bold to connect it to the reading.]
+
+# Example (word having kanji)
 
 The Mnemonic: "The Roof Over the Table"
 
