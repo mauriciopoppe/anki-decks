@@ -1,49 +1,48 @@
-# Anki Automation Tools
+# Anki Decks & Tools
 
-A collection of AI-powered scripts to automate and enhance Anki deck management. Built with **LiteLLM**, these tools support 100+ LLM providers including Google Gemini, OpenAI, Anthropic, Ollama, and llama.cpp.
+A set of scripts to make Anki smarter using AI. I use these to automatically fill in details like mnemonics, grammar explanations, or example sentences so I can focus on actually learning.
 
-## Scripts Overview
+## Quick Start
 
-- **(`augment_notes.py`):** Automatically generates content (notes, mnemonics, etc.) for your Anki cards using configurable AI prompts and target fields.
+1. **Set up a virtual environment**:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Set your API key**:
+   ```bash
+   export GEMINI_API_KEY="your_key_here" # or OPENAI_API_KEY, etc.
+   ```
+4. **Make sure [AnkiConnect](https://ankiweb.net/shared/info/2055492159) is installed** and Anki is running.
 
 ---
 
 ## `augment_notes.py`
 
-This tool fills empty fields in your Anki cards with AI-generated content based on other fields in the card.
+This script scans your deck for empty fields and fills them using an LLM. It uses [LiteLLM](https://docs.litellm.ai/docs/providers), so it works with Gemini, OpenAI, Anthropic, or local models via Ollama.
 
-### Features
-- **Configurable Prompts:** Use `{FieldName}` placeholders in your prompt to dynamically insert content from the card.
-- **Custom Targets:** Specify any field as the destination for the generated content.
-- **AI-Powered:** Uses [LiteLLM](https://docs.litellm.ai/docs/providers) to support virtually any LLM provider (Gemini, OpenAI, Anthropic, Mistral, Ollama, etc.) with a unified interface.
-- **AnkiConnect Integration:** Seamlessly update a running Anki instance, allowing for immediate feedback and iterative deck improvement.
-- **Interactive Review:** Optionally review each AI-generated response before applying it (y/n/s/q).
-- **Smart Filtering:** Only targets cards where the destination field is empty.
-- **Automatic Tagging:** Adds the current date (YYYY-MM-DD) and `anki_deck_augment` tag to modified notes for easy tracking.
-- **Parallel Processing:** Efficiently handles large decks.
+### Examples
 
-### Usage
-
-#### Explain a sentence in the Cloze Format
-
-I have a deck with sentences in French like `Sur ça, tu touches un point {{c1::assez juste::fairly accurate}}, je trouve.`. I use the prompt [./french_explain_prompt.txt](./french_explain_prompt.txt) to extract the "Text" field and generate an explanation for the word and sentence and store it in the "Notes" field.
+#### 1. Explain French Sentences
+Takes a Cloze deletion like `Sur ça, tu touches un point {{c1::assez juste}}` and adds a detailed explanation to the "Notes" field.
 
 | Before | After |
 | --- | --- |
 | ![before](./resources/french-explain-before.png) | ![after](./resources/french-explain-after.png) |
 
-
 ```bash
 python augment_notes.py \
-  --anki-connect \
   --note-type "My French" \
   --target-field "Notes" \
   --prompt-file "./french_explain_prompt.txt"
 ```
 
-#### Generating Mnemonics for Kanji
-
-I have a Japanese mining deck created with Yomitan's scanning of Kanji words `聞く`. I use the prompt [./kanji_mnemonic_prompt.txt](./kanji_mnemonic_prompt.txt) to extract multiple fields in my card and generate a mnemonic. The mnemonic ends up being a great way to remember the Meaning, Shape and Sound.
+#### 2. Generate Kanji Mnemonics
+Uses the Kanji and its meaning to create a story that helps you remember the shape and sound.
 
 | Before | After |
 | --- | --- |
@@ -51,58 +50,30 @@ I have a Japanese mining deck created with Yomitan's scanning of Kanji words `�
 
 ```bash
 python augment_notes.py \
-  --anki-connect \
   --note-type "Lapis" \
   --target-field "Notes" \
   --prompt-file "./kanji_mnemonic_prompt.txt"
 ```
 
-### Interactive Mode
+### Features
+- **Smart Fill**: Only touches cards where the target field is empty.
+- **Interactive Mode (`-i`)**: Review every AI response before it hits your deck.
+- **Dynamic Prompts**: Use `{FieldName}` in your prompt files to pull data from your cards.
+- **Auto-tagging**: Adds a date tag so you know exactly which cards were AI-augmented.
 
-The interactive mode (`--interactive` or `-i`) allows you to review each AI-generated response before it's applied to your deck. This is useful for ensuring quality and fine-tuning your prompts.
-
-When prompted, you can choose:
-- `y` (yes): Accept the generated text and save it to the card.
-- `n` (no): Reject the generated text; the card's target field will remain empty.
-- `s` (skip): Skip the current card and all remaining cards in this session.
-- `q` (quit): Immediately stop the script.
-
-### Command Line Arguments
-
-- `--note-type`: **(Required)** The Anki Note Type to process.
-- `--target-field`: **(Required)** The field to populate (e.g. "Notes", "Mnemonic").
-- `--prompt-file`: **(Required)** Path to a text file containing the custom prompt template. Use `{FieldName}` for placeholders.
-- `--interactive`, `-i`: (Optional) Process notes interactively, reviewing each AI-generated response.
-- `--model`: LiteLLM model identifier (e.g., `gemini/gemini-1.5-flash`, `ollama/qwen2.5:4b`). Default: `gemini/gemini-2.5-flash`.
-- `--dry-run`: Preview changes without applying them.
+### Parameters
+- `--note-type`: The Anki Note Type to process.
+- `--target-field`: The field you want to fill (e.g., "Notes").
+- `--prompt-file`: Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards. See the bundled [French](./french_explain_prompt.txt) and [Kanji](./kanji_mnemonic_prompt.txt) templates for examples.
+- `--model`: Defaults to `gemini/gemini-2.0-flash`. Use any LiteLLM string.
+- `--dry-run`: See what would happen without changing anything.
 
 ---
 
-## General Prerequisites & Installation
+## Important Notes
 
-### Prerequisites
-- Python 3.9+
-- An API Key for your chosen LLM provider (e.g., `GEMINI_API_KEY`, `OPENAI_API_KEY`, etc.)
-- Anki with the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on.
+- **Back up your deck** before running scripts that modify your database.
+- **Watch your API costs**. If you're processing thousands of cards, consider using a local model with Ollama.
+- **AnkiConnect** must be configured to allow the script to talk to Anki (usually works out of the box).
 
-### Installation
-1.  **Clone the repository.**
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-3.  **Set up your API Key:**
-    Export the environment variable required by your provider.
-    ```bash
-    # For Gemini
-    export GEMINI_API_KEY="your_api_key_here"
-    
-    # For OpenAI
-    export OPENAI_API_KEY="your_api_key_here"
-    ```
-
-## Disclaimer
-
-**Important:** These scripts were generated with the assistance of Large Language Models (LLMs). Automated modification of Anki databases carries inherent risks. Always **back up your original Anki decks** before use. The authors are not responsible for any data loss or corruption.
-
-**Cost Warning:** Using cloud-based LLM providers (like Google Gemini, OpenAI, etc.) may incur costs. Processing a large number of cards can lead to significant API usage and charges. Always check your provider's pricing and consider using a local model via Ollama or llama.cpp for large-scale operations.
+License: MIT
