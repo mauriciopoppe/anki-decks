@@ -1,0 +1,32 @@
+You are an expert Japanese linguist and educator. Your task is to generate one "i+1" example sentence for each of the provided target Japanese words.
+
+### CONTEXT
+The user has already learned the following Japanese vocabulary:
+{LEARNED_WORDS}
+
+### TARGET WORDS
+The new words to learn are:
+{TARGET_WORDS}
+
+### INSTRUCTIONS
+1. For EACH target word, generate ONE natural example sentence in Japanese.
+2. CRITICAL CONSTRAINT: Each sentence should follow the "i+1" principle. The target word is the ONLY word not in the learned list.
+3. The sentences should reflect "Daily Life" situations and use "Dynamic" grammar.
+4. **POLITE BY DEFAULT:** Use the `です/ます` (polite) form for sentences unless the context specifically demands a different conjugation. Avoid ending sentences in raw dictionary forms like `来る` or `する`.
+5. Bold the target word in its respective generated sentence using HTML `<b>` tags.
+6. **ANKI FURIGANA STYLE:** You MUST use the format ` 漢字[ふりがな]`.
+   * **CRITICAL:** You MUST include a single space before every Kanji/Kanji compound for Anki's furigana filter to trigger (e.g., ` 明日[あした]`).
+7. **NATURAL CONJUGATION:** Conjugate verbs and adjectives naturally (e.g., `〜ます`, `〜ています`, `〜たい`, `〜ました`).
+8. **JSON VALIDITY:** Your response must be a single, valid JSON object. No markdown wrappers. Ensure all quotes are properly escaped.
+
+Example Output Format:
+{{
+  "来る": {{
+    "sentence": " 明日[あした]、 友達[ともだち]が<b> 来[き]ます</b>。",
+    "english": "A friend is coming tomorrow."
+  }},
+  "食べる": {{
+    "sentence": "もう 晩[ばん]ご飯[ごはん]を<b> 食[た]べました</b>か。",
+    "english": "Have you already eaten dinner?"
+  }}
+}}
