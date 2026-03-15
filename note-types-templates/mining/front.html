@@ -1,41 +1,25 @@
 <!---------- Header ------------->
-<header style="visibility: hidden"></header>
+<header class="front-header" style="visibility: hidden"></header>
 
-<main lang="ja" style="width: 100%; !important;">
+<main lang="ja" class="front-main" style="width: 100%; !important;">
   <!--------- Vocab card ---------->
-  {{^IsSentenceCard}} {{^IsWordAndSentenceCard}} {{^IsClickCard}}
-  {{^IsAudioCard}}
+  {{^IsClickCard}} {{^IsAudioCard}}
   <div lang="ja" class="front-vocab">{{Expression}}</div>
-  {{/IsAudioCard}} {{/IsClickCard}} {{/IsWordAndSentenceCard}}
-  {{/IsSentenceCard}}
-
-  <!------- Sentence card --------->
-  {{#IsSentenceCard}}
   <div lang="ja" class="front-sentence">
-    {{#SentenceFurigana}} {{kanji:SentenceFurigana}} {{/SentenceFurigana}}
-    {{^SentenceFurigana}} {{kanji:Sentence}} {{/SentenceFurigana}}
+    {{#Sentence}} {{kanji:Sentence}} {{/Sentence}}
   </div>
-  {{/IsSentenceCard}}
-
-  <!--------- Word And Sentence card ----------->
-  {{#IsWordAndSentenceCard}}
-  <div lang="ja" class="front-vocab">{{Expression}}</div>
-  <div lang="ja" id="hint">
-    {{#SentenceFurigana}} {{kanji:SentenceFurigana}} {{/SentenceFurigana}}
-    {{^SentenceFurigana}} {{kanji:Sentence}} {{/SentenceFurigana}}
-  </div>
-  {{/IsWordAndSentenceCard}}
+  {{/IsAudioCard}} {{/IsClickCard}}
 
   <!-------- Click card ----------->
   {{#IsClickCard}}
-  <div id="click" class="tappable">
+  <div id="front-click" class="front-tappable">
     <div lang="ja" class="front-vocab">{{Expression}}</div>
   </div>
   {{/IsClickCard}}
 
   <!-------- Audio card ----------->
   {{#IsAudioCard}}
-  <div id="audio">
+  <div id="front-audio">
     <div lang="ja" class="front-sentence">{{Sentence}}</div>
     <div>
       {{#SentenceAudio}}{{SentenceAudio}}{{/SentenceAudio}}
@@ -46,13 +30,13 @@
 
   <!-- Hint -->
   {{#Hint}}
-  <div id="hint">{{Hint}}</div>
+  <div id="front-hint-field">{{Hint}}</div>
   {{/Hint}}
 </main>
 
 <script>
   function ClickCard() {
-    const clickElement = document.getElementById("click");
+    const clickElement = document.getElementById("front-click");
 
     // Store original content so that we can click back to it
     const originalContent = clickElement.innerHTML;
@@ -80,7 +64,7 @@
   }
 
   function HideTargetWord() {
-    const targetWords = document.querySelectorAll("#audio b");
+    const targetWords = document.querySelectorAll("#front-audio b");
     targetWords.forEach((word) => (word.innerText = "[...]"));
   }
 
