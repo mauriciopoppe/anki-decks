@@ -42,7 +42,38 @@ def clean_json_response(text):
         text = re.sub(r"```json\n?|```", "", text).strip()
     return text
 
-def process_batch(llm_client, batch_notes, prompt_template, learned_words):
+def ask_user_interactive(batch_notes, batch_updates):
+    """
+    Shows the user the proposed changes for the batch and asks for confirmation.
+    Returns: 'y', 'n', or 'q'
+    """
+    print("\n" + "=" * 40)
+    print("REVIEWING BATCH UPDATES")
+    print("-" * 20)
+    
+    updates_dict = {nid: data for nid, data in batch_updates}
+    
+    for note in batch_notes:
+        nid = note['id']
+        word = note['fields']['Expression']
+        if nid in updates_dict:
+            res = updates_dict[nid]
+            print(f"WORD: {word}")
+            print(f"  PROPOSED SENTENCE: {res['sentence']}")
+            print(f"  PROPOSED ENGLISH:  {res['english']}")
+            print("-" * 10)
+    
+    while True:
+        try:
+            choice = input("Accept batch? (y)es / (n)o / (q)uit: ").strip().lower()[:1]
+            if choice in ["y", "n", "q"]:
+                return choice
+        except KeyboardInterrupt:
+            print("\nQuit signal received.")
+            return "q"
+        print("Invalid choice. Please enter 'y', 'n', or 'q'.")
+
+def process_batch(llm_client, batch_notes, prompt_template, learned_words, interactive=False):
     target_words = [n['fields']['Expression'] for n in batch_notes]
     target_words_str = "\n".join(target_words)
 
@@ -67,8 +98,18 @@ def process_batch(llm_client, batch_notes, prompt_template, learned_words):
                     print(f"Error: AI response for '{word}' missing fields.")
             else:
                 print(f"Error: AI response missing entry for '{word}'.")
+        
+        if interactive and batch_updates:
+            choice = ask_user_interactive(batch_notes, batch_updates)
+            if choice == 'q':
+                raise KeyboardInterrupt("User quit during interaction")
+            if choice == 'n':
+                return []
+                
         return batch_updates
     except Exception as e:
+        if isinstance(e, KeyboardInterrupt):
+            raise e
         print(f"Error parsing JSON batch: {e}\nResponse: {generated_text}")
         return []
 
@@ -105,17 +146,21 @@ def check_and_warn_costs(model, num_notes):
     return True
 
 def main():
-    parser = argparse.ArgumentParser(description="Batched i+1 Augmentation for Japanese::Mining")
-    parser.add_argument("--model", default="gemini/gemini-2.5-flash", help="LiteLLM model")
+    parser = argparse.ArgumentParser(description="Batched i+1 Augmentation for Anki Decks")
+    parser.add_argument("--model", default="gemini/gemini-3.1-flash-lite-preview", help="LiteLLM model")
     parser.add_argument("--total-notes", type=int, default=20, help="Total number of notes to process")
     parser.add_argument("--batch-size", type=int, default=5, help="Number of words per prompt")
+    parser.add_argument("--note-type", default="Japanese::Mining", help="Anki Note Type")
+    parser.add_argument("--dry-run", action="store_true", help="Identify notes without processing")
+    parser.add_argument("--interactive", "-i", action="store_true", help="Review each batch before applying")
+    parser.add_argument("--prompt-file", default="kanji_augment_sentences.txt", help="Prompt template file")
     args = parser.parse_args()
 
     # Load prompt template
-    if not os.path.exists("i1_prompt_template.txt"):
-        print("Error: i1_prompt_template.txt not found.")
+    if not os.path.exists(args.prompt_file):
+        print(f"Error: {args.prompt_file} not found.")
         return
-    with open("i1_prompt_template.txt", "r", encoding="utf-8") as f:
+    with open(args.prompt_file, "r", encoding="utf-8") as f:
         prompt_template = f.read()
 
     # Load learned words
@@ -125,8 +170,9 @@ def main():
     with open("learned_words.txt", "r", encoding="utf-8") as f:
         learned_words = f.read().strip()
 
-    print("Fetching notes from Japanese::Mining...")
-    note_ids = invoke_anki("findNotes", query='"deck:Japanese::Mining"')
+    print(f"Fetching notes of type '{args.note_type}'...")
+    query = f'note:"{args.note_type}"'
+    note_ids = invoke_anki("findNotes", query=query)
     if not note_ids:
         print("No notes found.")
         return
@@ -154,6 +200,10 @@ def main():
     expressions = [n['fields']['Expression'].strip() for n in notes_to_process]
     print(", ".join(expressions))
 
+    if args.dry_run:
+        print("\nDry run complete. No changes made.")
+        return
+
     if not check_and_warn_costs(args.model, len(notes_to_process)):
         print("Aborting.")
         return
@@ -165,11 +215,16 @@ def main():
 
     batches = [notes_to_process[i:i + args.batch_size] for i in range(0, len(notes_to_process), args.batch_size)]
 
-    # Using max_workers=3 to balance speed and stability
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = [executor.submit(process_batch, llm_client, b, prompt_template, learned_words) for b in batches]
-        for future in tqdm(as_completed(futures), total=len(batches), desc="Processing batches"):
-            all_updates.extend(future.result())
+    # Using max_workers=1 if interactive to avoid multiple prompts at once
+    max_workers = 1 if args.interactive else 3
+    
+    try:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(process_batch, llm_client, b, prompt_template, learned_words, args.interactive) for b in batches]
+            for future in tqdm(as_completed(futures), total=len(batches), desc="Processing batches"):
+                all_updates.extend(future.result())
+    except KeyboardInterrupt:
+        print("\nProcess interrupted by user.")
 
     if all_updates:
         print(f"Updating {len(all_updates)} notes in Anki...")

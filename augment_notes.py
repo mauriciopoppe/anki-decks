@@ -200,6 +200,8 @@ def process_deck_ankiconnect(
     llm_client,
     dry_run=False,
     interactive=False,
+    total_notes=None,
+    sort_field="FreqSort",
 ):
     print(f"Querying Anki for Note Type: '{note_type}'...")
     query = f'note:"{note_type}"'
@@ -212,14 +214,27 @@ def process_deck_ankiconnect(
     print(f"Found {len(note_ids)} notes. Fetching details...")
 
     batch_size = 500
-    notes_to_process = []
+    all_notes = []
 
+    for i in range(0, len(note_ids), batch_size):
+        batch = note_ids[i : i + batch_size]
+        infos = invoke_anki("notesInfo", notes=batch)
+        all_notes.extend(infos)
+
+    # Sort notes immediately after fetching
+    print(f"Sorting notes by '{sort_field}'...")
+    all_notes.sort(
+        key=lambda x: int(
+            x["fields"].get(sort_field, {}).get("value", "999999") or "999999"
+        )
+    )
+
+    notes_to_process = []
     required_fields = extract_required_fields(prompt_template)
 
     # Check first note to verify fields exist
-    if note_ids:
-        first_info = invoke_anki("notesInfo", notes=note_ids[:1])[0]
-        fields = first_info["fields"]
+    if all_notes:
+        fields = all_notes[0]["fields"]
 
         if target_field not in fields:
             print(
@@ -236,24 +251,24 @@ def process_deck_ankiconnect(
 
         print(f"Verified fields: Target='{target_field}', Source={required_fields}")
 
-    for i in range(0, len(note_ids), batch_size):
-        batch = note_ids[i : i + batch_size]
-        infos = invoke_anki("notesInfo", notes=batch)
+    for info in all_notes:
+        # We construct a simple dict { "FieldName": "Value" }
+        note_fields = {k: v["value"] for k, v in info["fields"].items()}
 
-        for info in infos:
-            # We construct a simple dict { "FieldName": "Value" }
-            note_fields = {k: v["value"] for k, v in info["fields"].items()}
+        # Filter logic: if target is empty
+        if not note_fields.get(target_field, "").strip():
+            # We store the whole note_fields because we might need multiple source fields
+            notes_to_process.append(
+                {
+                    "id": info["noteId"],
+                    "fields": note_fields,
+                    "tags": info["tags"],
+                }
+            )
 
-            # Filter logic: if target is empty
-            if not note_fields.get(target_field, "").strip():
-                # We store the whole note_fields because we might need multiple source fields
-                notes_to_process.append(
-                    {
-                        "id": info["noteId"],
-                        "fields": note_fields,
-                        "tags": info["tags"],
-                    }
-                )
+    # Limit to total-notes if specified
+    if total_notes is not None:
+        notes_to_process = notes_to_process[:total_notes]
 
     print(f"Found {len(notes_to_process)} notes that require augmentation.")
 
@@ -374,6 +389,17 @@ if __name__ == "__main__":
         required=True,
         help="Path to a text file containing the prompt template. Use {FieldName} for placeholders.",
     )
+    parser.add_argument(
+        "--total-notes",
+        type=int,
+        default=None,
+        help="Total number of notes to process",
+    )
+    parser.add_argument(
+        "--sort-field",
+        default="FreqSort",
+        help="Field to sort by (default: FreqSort)",
+    )
 
     # LLM Provider Arguments
     parser.add_argument(
@@ -401,4 +427,6 @@ if __name__ == "__main__":
         llm_client=llm_client,
         dry_run=args.dry_run,
         interactive=args.interactive,
+        total_notes=args.total_notes,
+        sort_field=args.sort_field,
     )

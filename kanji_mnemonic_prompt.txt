@@ -22,8 +22,6 @@ alternatives. If possible, make a story using the breakdown done in the **SHAPE 
 
 # Kanji Output Format
 
-The Mnemonic: "[Creative Title]"
-
 Meaning: **[Brief Meaning]** ({Expression})
 
 Shape: [Visual connection. Mention radicals like **[Radical Name] ([Radical Character])** in bold.]
@@ -33,8 +31,6 @@ Story: [Creative story/pun. The English pun **[SOUND PUN]** (**[Hiragana]**) mus
 Example: [Japanese sentence] ([Reading]) - [Translation]
 
 ## Example
-
-The Mnemonic: "The Roof Over the Table"
 
 Meaning: **To eat** (食べる)
 
@@ -46,8 +42,6 @@ Example: 私はリンゴを食べます (わたしはリンゴをたべます) -
 
 # Kana Output Format
 
-The Mnemonic: "[Creative Title]"
-
 Meaning: **[Brief Meaning]** ({Expression})
 
 Story: [Creative story/pun. The English pun **[SOUND PUN]** (**[Hiragana]**) must be in bold to connect it to the reading.]
@@ -55,8 +49,6 @@ Story: [Creative story/pun. The English pun **[SOUND PUN]** (**[Hiragana]**) mus
 Example: [Japanese sentence] ([Reading]) - [Translation]
 
 ## Example
-
-The Mnemonic: "The Quick Rabbit"
 
 Meaning: **Quickly/Suddenly** (さっと)
 
