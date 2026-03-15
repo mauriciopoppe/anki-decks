@@ -25,35 +25,6 @@ The method reuses **grammatical frameworks** to provide scaffolding.
 ### Summary of the Logic
 This approach works like a **ladder**: each new word is a new rung, but the side rails (the sentences) stay the same for several rungs, providing a stable grip as you climb. Words are not learned in isolation; they are learned by how they "slot" into understood sentences.
 
-## Current Deck Structure: Japanese::Mining (Model: Lapis)
-
-The following fields define the current structure of the **Japanese::Mining** deck (using the **Lapis** note type):
-
-1.  **Expression:** The target word or phrase in Japanese.
-2.  **ExpressionFurigana:** Furigana for the expression.
-3.  **ExpressionReading:** Reading of the expression.
-4.  **ExpressionAudio:** Audio for the expression.
-5.  **SelectionText:** Contextual text from which the expression was selected.
-6.  **MainDefinition:** The primary dictionary definition.
-7.  **DefinitionPicture:** An image associated with the definition.
-8.  **Sentence:** The example sentence containing the target word (typically bolded).
-9.  **SentenceFurigana:** The example sentence with Furigana.
-10. **SentenceEnglish:** The English translation of the sentence.
-11. **SentenceAudio:** Audio for the example sentence.
-12. **Picture:** An image illustrating the example sentence.
-13. **Glossary:** Additional dictionary/lookup information.
-14. **Hint:** A hint for the card.
-15. **IsWordAndSentenceCard:** Flag for creating word+sentence cards.
-16. **IsClickCard:** Flag for interactive cards.
-17. **IsSentenceCard:** Flag for dedicated sentence cards.
-18. **IsAudioCard:** Flag for dedicated audio cards.
-19. **PitchPosition:** Numeric pitch accent information.
-20. **PitchCategories:** Descriptive pitch accent categories.
-21. **Frequency:** Raw frequency data.
-22. **FreqSort:** Numerical frequency field used for sorting.
-23. **MiscInfo:** Sources or additional metadata.
-24. **Notes:** Any additional user notes.
-
 ## Card Templates & Synchronization
 
 The HTML and CSS templates for the **Japanese::Mining** (Lapis model) deck are version-controlled in this repository:

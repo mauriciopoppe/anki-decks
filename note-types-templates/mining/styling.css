@@ -8,14 +8,14 @@
   /* --- Front Font Sizes --- */
   --front-main-font-size: 18px;
   --front-vocab-font-size: 5em;
-  --front-sentence-font-size: 1em;
+  --front-sentence-font-size: 1.2em;
   --front-hint-font-size: 38px;
 
   /* --- Back Font Sizes --- */
   --back-main-font-size: 18px;
   --back-main-def-size: 14px;
   --back-vocab-font-size: 4em;
-  --back-sentence-font-size: 1em;
+  --back-sentence-font-size: 1.2em;
   --back-info-font-size: 23px;
 
   /* --- Shared Fonts --- */
