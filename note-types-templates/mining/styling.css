@@ -25,21 +25,15 @@
     "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Meiryo", HanaMinA,
     HanaMinB, sans-serif;
 
-  /* --- Shared Layout & Settings --- */
+  /* --- Shared Layout --- */
   --max-width: 800px;
   --light-mode-image-brightness: 85%;
   --dark-mode-image-brightness: 80%;
   --light-mode-tooltip-hover-color: rgba(255, 255, 255, 0.9);
   --dark-mode-tooltip-hover-color: rgba(0, 0, 0, 0.9);
 
-  /* --- Back Layout & Settings --- */
+  /* --- Back Settings (Hardcoded Defaults) --- */
   --back-def-picture-size: 200px;
-  --back-main-picture-position: "right";
-  --back-sentence-furigana: "hover";
-  --back-mobile-audio-buttons: "default";
-  --back-open-misc-info: "off";
-  --back-glossary-separator: "off";
-  --back-jitendex-format: "full";
 
   /* --- Shared Pitch Colors --- */
   --heiban-color: #1aa0ce;
@@ -58,7 +52,7 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.card .back-main {
+.card.back-main {
   font-size: var(--back-main-font-size);
 }
 .card::-webkit-scrollbar {
@@ -110,6 +104,9 @@ b {
   color: var(--bold);
   font-weight: 600;
 }
+.mobile b {
+  font-weight: 400;
+}
 a {
   color: #3b82f6 !important;
 }
@@ -136,6 +133,7 @@ main {
   height: 40px;
   text-align: right;
   width: 100%;
+  font-size: 1rem;
 }
 .front-vocab {
   font-size: var(--front-vocab-font-size);
@@ -146,12 +144,17 @@ main {
   display: inline-block;
   line-height: 1.5;
 }
+.front-sentence b {
+  font-weight: normal;
+  color: inherit;
+}
 #front-hint {
   font-size: var(--front-hint-font-size);
   margin-top: -5px;
   line-height: 1.5;
 }
 #front-hint-field {
+  font-size: 0.7em;
   margin-top: 10px;
   color: var(--fg-subtle);
 }
@@ -171,6 +174,7 @@ main {
   height: 40px;
   text-align: right;
   width: 100%;
+  font-size: 1rem;
 }
 .back-top-container {
   font-family: var(--font-sans);
@@ -214,6 +218,10 @@ main {
   font-size: var(--back-info-font-size);
   color: var(--fg-color);
 }
+.mobile .back-info {
+  font-size: 0.9rem;
+  padding-top: 7px;
+}
 /* Pitch */
 .back-pitch {
   display: inline;
@@ -247,6 +255,10 @@ main {
   vertical-align: top;
   padding: 1px 3px;
   margin-right: -5px;
+}
+.mobile .nightMode #back-pitch-tags {
+  color: #000 !important;
+  background-color: #fff;
 }
 /* Pitch Graphs */
 .back-pitch-low,
@@ -296,6 +308,7 @@ main {
 
 .back-def-header {
   display: flex;
+  font-size: 30px;
   justify-content: center;
   align-items: center;
   max-width: 820px;
@@ -308,6 +321,14 @@ main {
   padding: 0.52em;
   border-radius: 5px;
   flex: 1;
+}
+.mobile .back-dh-left {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+.mobile .back-dh-left:has(~ .back-dh-right) {
+  max-width: 60vw;
 }
 .back-main-def {
   background-color: var(--bg-elevated);
@@ -331,6 +352,9 @@ main {
   text-align: right;
   pointer-events: none;
   visibility: hidden;
+}
+.mobile .back-def-info {
+  margin-bottom: -5px;
 }
 .back-definition {
   text-align: left;
@@ -447,10 +471,8 @@ main {
   font-size: var(--back-sentence-font-size);
   display: inline-block;
 }
+/* Furigana always visible */
 .back-sentence rt {
-  visibility: hidden;
-}
-.back-sentence ruby:hover rt {
   visibility: visible;
 }
 .back-notes {
@@ -515,6 +537,10 @@ summary {
   white-space: nowrap;
   min-height: 1.6em;
 }
+.mobile .back-tags {
+  padding: 1px 3px;
+  font-size: 9px;
+}
 .back-audio-buttons {
   margin-top: 10px;
 }
@@ -538,6 +564,10 @@ ul[data-sc-content="glossary"] {
   display: inline;
   list-style: none;
   padding-left: 0;
+}
+.mobile li[data-dictionary^="Jitendex"] ul,
+.mobile li[data-dictionary^="Jitendex"] ol {
+  padding-left: 0.3em;
 }
 .back-definition i {
   font-style: normal;
@@ -593,68 +623,4 @@ ol li[data-details*="JMdict"] .dict-group__tag-list .dict-group__tag--dict {
 .back-definition ol:has(> li[data-details]:only-of-type) {
   list-style-type: none;
   padding-inline-start: 0;
-}
-
-/* --- User Settings --- */
-settings[data-back-main-picture-position="left"] + #qa .back-def-header {
-  flex-flow: row-reverse;
-}
-settings[data-back-sentence-furigana="always"] + #qa .back-sentence rt {
-  visibility: visible;
-}
-settings[data-back-sentence-furigana="off"] + #qa .back-sentence rt {
-  display: none;
-}
-settings[data-back-glossary-separator="on"]
-  + #qa
-  .back-definition
-  li[data-dictionary]:not(:last-of-type),
-settings[data-back-glossary-separator="on"]
-  + #qa
-  .back-definition
-  li[data-details]:not(:last-of-type) {
-  border-bottom: 1px dashed var(--fg-subtle);
-}
-settings[data-back-jitendex-format~="minimal"]
-  + #qa
-  .back-definition
-  [data-sc-content]:not([data-sc-content="glossary"]) {
-  display: none;
-}
-settings[data-back-jitendex-format~="minimal"] + #qa .back-definition [data-sc-code],
-settings[data-back-jitendex-format~="no-tags"] + #qa .back-definition [data-sc-code] {
-  display: none;
-}
-settings[data-back-jitendex-format~="minimal"] + #qa .back-definition ul,
-settings[data-back-jitendex-format~="no-tags"] + #qa .back-definition ul {
-  padding-inline-start: 0;
-  margin-block: 0;
-}
-settings[data-back-jitendex-format~="minimal"] + #qa .back-definition ul > li::marker,
-settings[data-back-jitendex-format~="no-tags"] + #qa .back-definition ul > li::marker {
-  content: "";
-}
-settings[data-back-jitendex-format~="no-sentence"]
-  + #qa
-  .back-definition
-  [data-sc-content|="example-sentence"] {
-  display: none;
-}
-settings[data-back-jitendex-format~="no-forms"]
-  + #qa
-  .back-definition
-  [data-sc-content="forms"] {
-  display: none;
-}
-settings[data-back-jitendex-format~="no-xref"]
-  + #qa
-  .back-definition
-  [data-sc-content|="xref"] {
-  display: none;
-}
-settings[data-back-jitendex-format~="no-img"]
-  + #qa
-  .back-definition
-  [data-sc-content|="graphic"] {
-  display: none;
 }

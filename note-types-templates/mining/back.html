@@ -506,30 +506,6 @@ function movePrimaryDicts() {
   }
 }
 
-function userSettings() {
-  const oldSettings = document.querySelector("body > settings");
-  oldSettings?.remove();
-
-  const settings = document.createElement("settings");
-  const options = [
-    "--back-main-picture-position",
-    "--back-sentence-furigana",
-    "--back-mobile-audio-buttons",
-    "--back-open-misc-info",
-    "--back-glossary-separator",
-    "--back-jitendex-format"
-  ];
-  for (let opt of options) {
-    const value = getComputedStyle(document.documentElement).getPropertyValue(opt).trim();
-    settings.setAttribute("data-" + opt.slice(2), value.slice(1, -1));
-    if (opt === "--back-open-misc-info" && value === "\"on\"") {
-      const miscInfo = document.querySelector("details:has(.back-misc-info)")
-      if (miscInfo) miscInfo.open = true;
-    }
-  }
-  document.body.insertBefore(settings, document.getElementById("qa"));
-}
-
 function initialize() {
   handlePitches();
   setUpDefToggle();
@@ -538,7 +514,6 @@ function initialize() {
   setDHHeight();
   hideCorrectDefinition();
   movePrimaryDicts();
-  userSettings();
   splitTags();
 }
 
