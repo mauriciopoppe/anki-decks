@@ -14,7 +14,7 @@
   /* --- Back Font Sizes --- */
   --back-main-font-size: 18px;
   --back-main-def-size: 14px;
-  --back-vocab-font-size: 2em;
+  --back-vocab-font-size: 4em;
   --back-sentence-font-size: 1em;
   --back-info-font-size: 23px;
 
@@ -52,7 +52,7 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.card.back-main {
+.card .back-main {
   font-size: var(--back-main-font-size);
 }
 .card::-webkit-scrollbar {
@@ -308,7 +308,6 @@ main {
 
 .back-def-header {
   display: flex;
-  font-size: 30px;
   justify-content: center;
   align-items: center;
   max-width: 820px;

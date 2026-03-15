@@ -98,4 +98,16 @@ To synchronize these local files with Anki, you can use the **Anki-Connect** API
     }'
     ```
 
+The user uses this one liner to update the settings on their own:
+
+```bash
+curl -s -X POST http://localhost:8765 -d "$(jq -n \
+  --arg f "$(cat note-types-templates/mining/front.html)" \
+  --arg b "$(cat note-types-templates/mining/back.html)" \
+  '{action: "updateModelTemplates", version: 6, params: {model: {name: "Lapis", templates: {Mining: {Front: $f, Back: $b}}}}}')" && \
+  curl -s -X POST http://localhost:8765 -d "$(jq -n \
+  --arg s "$(cat note-types-templates/mining/styling.css)" \
+  '{action: "updateModelStyling", version: 6, params: {model: {name: "Lapis", css: $s}}}')"
+```
+
 *Note: You must ensure that the "Lapis" model exists in Anki and that the template name ("Card 1") matches your actual setup.*
