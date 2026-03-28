@@ -13,11 +13,7 @@ A set of scripts to make Anki smarter using AI. I use these to automatically fil
    ```bash
    pip install -r requirements.txt
    ```
-3. **Set your API key**:
-   ```bash
-   export GEMINI_API_KEY="your_key_here" # or OPENAI_API_KEY, etc.
-   ```
-4. **Make sure [AnkiConnect](https://ankiweb.net/shared/info/2055492159) is installed** and Anki is running.
+3. **Make sure [AnkiConnect](https://ankiweb.net/shared/info/2055492159) is installed** and Anki is running.
 
 ---
 
