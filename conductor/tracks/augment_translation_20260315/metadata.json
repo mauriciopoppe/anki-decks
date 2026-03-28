@@ -1,0 +1,8 @@
+{
+  "track_id": "augment_translation_20260315",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-15T12:00:00Z",
+  "updated_at": "2026-03-15T12:00:00Z",
+  "description": "Create a new script called augment_translation.py to automatically translate Anki note fields to English."
+}
