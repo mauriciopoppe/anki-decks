@@ -194,7 +194,7 @@ def process_note_live(
 
 
 def process_deck_ankiconnect(
-    note_type,
+    deck,
     target_field,
     prompt_template,
     llm_client,
@@ -203,13 +203,18 @@ def process_deck_ankiconnect(
     total_notes=None,
     sort_field="FreqSort",
 ):
-    print(f"Querying Anki for Note Type: '{note_type}'...")
-    query = f'note:"{note_type}"'
+    print(f"Querying Anki for Deck: '{deck}'...")
+    query = f'deck:"{deck}"'
     note_ids = invoke_anki("findNotes", query=query)
 
     if not note_ids:
-        print("No notes found for this query.")
+        print(f"No notes found in deck '{deck}'.")
         return
+
+    # Infer note type from the first note
+    first_note_info = invoke_anki("notesInfo", notes=[note_ids[0]])[0]
+    note_type = first_note_info["modelName"]
+    print(f"Inferred Note Type: '{note_type}' from first note.")
 
     print(f"Found {len(note_ids)} notes. Fetching details...")
 
@@ -364,9 +369,9 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--note-type",
+        "--deck",
         required=True,
-        help="Anki Model (Note Type) Name",
+        help="Anki Deck Name",
     )
     parser.add_argument(
         "--dry-run",
@@ -421,7 +426,7 @@ if __name__ == "__main__":
     print(f"Using model: {args.model}")
 
     process_deck_ankiconnect(
-        note_type=args.note_type,
+        deck=args.deck,
         target_field=args.target_field,
         prompt_template=prompt_template,
         llm_client=llm_client,

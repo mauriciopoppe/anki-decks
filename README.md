@@ -36,7 +36,7 @@ Takes a Cloze deletion like `Sur ça, tu touches un point {{c1::assez juste}}` a
 
 ```bash
 python augment_notes.py \
-  --note-type "My French" \
+  --deck "Language French::My french words and phrases" \
   --target-field "Notes" \
   --prompt-file "./french_explain_prompt.txt"
 ```
@@ -50,7 +50,7 @@ Uses the Kanji and its meaning to create a story that helps you remember the sha
 
 ```bash
 python augment_notes.py \
-  --note-type "Lapis" \
+  --deck "Language Japanese::Mining" \
   --target-field "Notes" \
   --prompt-file "./kanji_mnemonic_prompt.txt"
 ```
@@ -62,7 +62,7 @@ python augment_notes.py \
 - **Auto-tagging**: Adds a date tag so you know exactly which cards were AI-augmented.
 
 ### Parameters
-- `--note-type`: The Anki Note Type to process.
+- `--deck`: The Anki Deck Name to process. Note type is inferred automatically.
 - `--target-field`: The field you want to fill (e.g., "Notes").
 - `--prompt-file`: Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards. See the bundled [French](./french_explain_prompt.txt) and [Kanji](./kanji_mnemonic_prompt.txt) templates for examples.
 - `--model`: Defaults to `gemini/gemini-2.0-flash`. Use any LiteLLM string.
@@ -80,7 +80,7 @@ Generates sentences for your Japanese mining deck based on your known vocabulary
 
 ```bash
 python augment_sentences.py \
-  --note-type "Japanese::Mining" \
+  --deck "Japanese::Mining" \
   --total-notes 20 \
   --batch-size 5 \
   --prompt-file "./kanji_augment_sentences.txt"
@@ -92,12 +92,39 @@ python augment_sentences.py \
 - **Frequency Sorting**: Automatically prioritizes more common words by sorting by `FreqSort`.
 
 ### Parameters
-- `--note-type`: The Anki Note Type to process (e.g., "Japanese::Mining").
+- `--deck`: The Anki Deck Name to process (e.g., "Japanese::Mining"). Note type is inferred automatically.
 - `--total-notes`: Maximum number of notes to process in one run.
 - `--batch-size`: Number of words to include in each AI prompt.
 - `--prompt-file`: Template file. Use `{TARGET_WORDS}` and `{LEARNED_WORDS}` placeholders.
 - `--interactive (-i)`: Review each batch before it's saved.
 - `--dry-run`: List the words that would be processed without calling the AI.
+
+---
+
+## `augment_translation.py`
+
+This script automatically translates Anki note fields into English using `deep-translator` (Google Translate).
+
+### Example
+
+```bash
+python augment_translation.py \
+  --deck "Japanese::Mining" \
+  --target-field "SentenceEnglish" \
+  --source-field "Sentence"
+```
+
+### Features
+- **Smart Fill**: Only translates cards where the target field is empty.
+- **Normalization**: Automatically removes Anki cloze formatting (`{{c1::...}}`) before translating.
+
+### Parameters
+- `--deck`: The Anki Deck Name to process. Note type is inferred automatically.
+- `--target-field`: The field you want to fill with the English translation.
+- `--source-field`: The field containing the text to translate (defaults to "Expression").
+- `--total-notes`: Maximum number of notes to process in one run (defaults to 20).
+- `--batch-size`: Number of notes to update in Anki per batch (defaults to 5).
+- `--dry-run`: Preview translations without updating Anki.
 
 ---
 

@@ -8,6 +8,7 @@
 ## Data and File Handling
 - **requests:** Used for making HTTP requests to the AnkiConnect API.
 - **tqdm:** Used for displaying progress bars during long-running operations like data downloads.
+- **deep-translator:** Used for free Google Translate API access.
 - **Lexique 3:** Used as the primary linguistic database for French lemmatization.
 
 ## Development and Quality

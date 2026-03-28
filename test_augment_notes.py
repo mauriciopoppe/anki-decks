@@ -51,18 +51,22 @@ class TestAugmentNotes(unittest.TestCase):
         """Test AnkiConnect mode dry run."""
 
         # Mock findNotes
-        # query='note:"Cloze"'
+        # query='deck:"Default"'
         # Returns list of IDs
         def side_effect(action, **params):
             if action == "findNotes":
                 return [1, 2, 3]
             if action == "notesInfo":
+                if params.get("notes") == [1]:
+                    # Mock for note type inference
+                    return [{"modelName": "Cloze"}]
                 return [
                     {
                         "noteId": 1,
                         "fields": {
                             "Text": {"value": "Text1", "order": 0},
                             "Notes": {"value": "", "order": 2},
+                            "FreqSort": {"value": "100", "order": 3},
                         },
                         "tags": ["tag1"],
                     },
@@ -71,6 +75,7 @@ class TestAugmentNotes(unittest.TestCase):
                         "fields": {
                             "Text": {"value": "Text2", "order": 0},
                             "Notes": {"value": "Existing", "order": 2},
+                            "FreqSort": {"value": "200", "order": 3},
                         },
                         "tags": ["tag2"],
                     },
@@ -79,6 +84,7 @@ class TestAugmentNotes(unittest.TestCase):
                         "fields": {
                             "Text": {"value": "Text3", "order": 0},
                             "Notes": {"value": "", "order": 2},
+                            "FreqSort": {"value": "300", "order": 3},
                         },
                         "tags": ["tag3"],
                     },
@@ -89,11 +95,14 @@ class TestAugmentNotes(unittest.TestCase):
         mock_llm_client = MagicMock()
 
         process_deck_ankiconnect(
-            "Cloze", TEST_TARGET_FIELD, TEST_PROMPT, mock_llm_client, dry_run=True
+            "Default", TEST_TARGET_FIELD, TEST_PROMPT, mock_llm_client, dry_run=True
         )
 
         # Verification
-        mock_invoke_anki.assert_any_call("findNotes", query='note:"Cloze"')
+        mock_invoke_anki.assert_any_call("findNotes", query='deck:"Default"')
+        # First call to notesInfo is for inference
+        mock_invoke_anki.assert_any_call("notesInfo", notes=[1])
+        # Second call to notesInfo is for details
         mock_invoke_anki.assert_any_call("notesInfo", notes=[1, 2, 3])
 
         # Ensure NO updateNoteFields calls happened

@@ -7,5 +7,5 @@
 
 ---
 
-- [ ] **Track: Create a new script called augment_translation.py to automatically translate Anki note fields to English.**
+- [x] **Track: Create a new script called augment_translation.py to automatically translate Anki note fields to English.**
 *Link: [./tracks/augment_translation_20260315/](./tracks/augment_translation_20260315/)*

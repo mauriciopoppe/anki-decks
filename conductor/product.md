@@ -39,6 +39,7 @@ This approach works like a **ladder**: each new word is a new rung, but the side
 ## Key Features
 - **`augment_notes.py` Script:** A versatile tool that uses configurable AI prompts and AnkiConnect to extract data from card fields and populate target fields with generated content.
 - **`augment_sentences.py` Script:** A batched i+1 augmentation tool that generates example sentences based on a user's learned vocabulary, reinforcing new words in a familiar context.
+- **`augment_translation.py` Script:** Automatically translates Anki note fields into English using Google Translate (via deep-translator).
 - **Interactive Review Mode:** Review and approve AI-generated changes note-by-note (or batch-by-batch) to ensure quality and control before updating the deck.
 - **AnkiConnect Integration:** Seamlessly update a running Anki instance, allowing for immediate feedback and iterative deck improvement.
 - **Configurable Prompt Templates:** Support for `{FieldName}` placeholders to dynamically insert card data into AI instructions.

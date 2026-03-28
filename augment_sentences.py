@@ -150,7 +150,7 @@ def main():
     parser.add_argument("--model", default="gemini/gemini-3.1-flash-lite-preview", help="LiteLLM model")
     parser.add_argument("--total-notes", type=int, default=20, help="Total number of notes to process")
     parser.add_argument("--batch-size", type=int, default=5, help="Number of words per prompt")
-    parser.add_argument("--note-type", default="Japanese::Mining", help="Anki Note Type")
+    parser.add_argument("--deck", default="Japanese::Mining", help="Anki Deck Name")
     parser.add_argument("--dry-run", action="store_true", help="Identify notes without processing")
     parser.add_argument("--interactive", "-i", action="store_true", help="Review each batch before applying")
     parser.add_argument("--prompt-file", default="kanji_augment_sentences.txt", help="Prompt template file")
@@ -170,11 +170,11 @@ def main():
     with open("learned_words.txt", "r", encoding="utf-8") as f:
         learned_words = f.read().strip()
 
-    print(f"Fetching notes of type '{args.note_type}'...")
-    query = f'note:"{args.note_type}"'
+    print(f"Fetching notes from deck '{args.deck}'...")
+    query = f'deck:"{args.deck}"'
     note_ids = invoke_anki("findNotes", query=query)
     if not note_ids:
-        print("No notes found.")
+        print(f"No notes found in deck '{args.deck}'.")
         return
 
     notes_info = invoke_anki("notesInfo", notes=note_ids)

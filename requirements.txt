@@ -39,3 +39,4 @@ uritemplate==4.2.0
 urllib3==2.6.2
 websockets==15.0.1
 litellm
+deep-translator==1.11.4
