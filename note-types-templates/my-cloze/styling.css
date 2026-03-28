@@ -109,6 +109,26 @@ footer {
 }
 
 /* Back Elements */
+.back-sentence {
+  line-height: 1.5;
+  margin-block: 40px;
+}
+
+.cloze-expression {
+  /* Inherit font-size from parent to match front */
+}
+
+.expression-english {
+  font-family: var(--font-serif);
+  font-size: 0.8em;
+  color: #666;
+  font-style: italic;
+}
+
+.nightMode .expression-english {
+  color: #aaa;
+}
+
 .notes {
   background-color: rgba(0,0,0,0.04);
   padding: 12px 16px;

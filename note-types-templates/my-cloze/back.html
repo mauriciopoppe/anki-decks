@@ -1,13 +1,14 @@
 <main>
-    <div class="front-sentence">
-        {{cloze:Expression}}
+    <div class="back-sentence">
+        <div class="cloze-expression">
+            {{cloze:Expression}}
+        </div>
+        {{#ExpressionEnglish}}
+        <div class="expression-english">
+            {{ExpressionEnglish}}
+        </div>
+        {{/ExpressionEnglish}}
     </div>
-
-    {{#ExpressionEnglish}}
-    <div class="expression-english">
-        {{ExpressionEnglish}}
-    </div>
-    {{/ExpressionEnglish}}
 
     {{#Notes}}
     <div class="notes">

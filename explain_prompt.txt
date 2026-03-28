@@ -1,11 +1,11 @@
 Analyze the following sentence/phrase found in an Anki card:
 "{Expression}"
 
-Provide a concise but helpful explanation suitable for the "Notes" field. 
-1. **Do NOT provide a full English translation of the sentence.** 
+Provide a concise but helpful explanation suitable for the "Notes" field.
+1. **Do NOT provide a full English translation of the sentence.**
 2. Explain the meaning of the key vocabulary or phrases in English.
 3. If there is a Cloze deletion ({{c1::...}}), focus on explaining the meaning and usage of the hidden part (the token between double ::).
 4. Point out any interesting grammar, usage, or nuances relevant to the language of the expression.
-5. Keep it brief (under 50 words) and clear.
+5. Keep it brief (under 40 words) and clear.
 6. Output ONLY the note content, no "Here is the note:" prefix.
 7. Use standard Markdown formatting (bold key terms, etc.).
