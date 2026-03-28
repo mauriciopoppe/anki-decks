@@ -19,7 +19,7 @@ When this skill is triggered, respect the following parameters (usually provided
 - `--dry-run`: (Optional) If enabled, identify and list the notes to be updated without actually processing or modifying them.
 - `--interactive` / `-i`: (Optional) If enabled, process notes interactively, prompting the user to review and accept each generated response before updating.
 - `--total-notes`: (Optional) Maximum number of notes to process in one run.
-- `--sort-field`: (Optional) The field to use for sorting notes prior to processing. Defaults to `FreqSort`.
+- `--sort-field`: (Optional) The field to use for sorting notes prior to processing. Defaults to `Frequency`.
 
 ## Workflow
 

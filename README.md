@@ -65,6 +65,30 @@ Translates a field (like "Expression") into natural English, automatically clean
 
 ---
 
+## Workspace Skill: `anki-monolingual-hints`
+
+Transform Anki cloze deletion hints from English to monolingual cues (definitions, synonyms, or grammar cues) in the target language. Use this to help users "think" in the target language by removing English crutches.
+
+### Example
+
+**Prompt:**
+> Use anki-monolingual-hints for deck "Language French::My french words and phrases". Process 5 notes.
+
+### Strategy Priority
+1. **Zero Hint:** Remove the hint entirely if context makes it obvious.
+2. **Definition (TL):** Provide a simple definition in the target language.
+3. **Synonym/Antonym (TL):** Use `=` for synonyms or `≠` for antonyms.
+4. **Grammar Cue:** Use a short label for conjugation or rules.
+
+### Parameters
+- `--deck`: (Required) The Anki Deck Name to process.
+- `--target-field`: (Optional) Field with the cloze deletions. Defaults to `Expression`.
+- `--total-notes`: (Optional) Limit processing. Defaults to `5`.
+- `--interactive` / `-i`: (Optional) Review every transformation.
+- `--dry-run`: (Optional) Preview results only.
+
+---
+
 ## Workspace Skill: `anki-add-sentence`
 
 Generates **i+1 example sentences** for learning targets. It ensures sentences only use vocabulary you've already learned (by automatically running `extract_learned_vocab.py`) plus the single target word.
@@ -103,9 +127,20 @@ Estimates how common a word or phrase is in a conversational setting (scale 1-10
 
 ---
 
+## Workspace Skill: `anki-backup-deck`
+
+Backup an Anki deck to a single `.apkg` binary file. Use this before making significant changes to your deck.
+
+### Example
+
+**Prompt:**
+> Use anki-backup-deck to backup the "Language French::My french words and phrases" deck to anki_backups/.
+
+---
+
 ## Important Notes
 
-- **Back up your deck** before running skills that modify your database.
+- **Back up your deck** using `anki-backup-deck` before running skills that modify your database.
 - **AnkiConnect** must be configured to allow your AI agent to talk to Anki.
 - Check your agent's documentation to verify that all workspace skills are properly loaded.
 
