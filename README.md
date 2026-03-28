@@ -101,30 +101,31 @@ python augment_sentences.py \
 
 ---
 
-## `augment_translation.py`
+## Workspace Skill: `anki-translate-deck`
 
-This script automatically translates Anki note fields into English using `deep-translator` (Google Translate).
+This workspace skill provides a procedural workflow to automatically translate Anki note fields into English using Gemini. It handles Anki cloze formatting, deduplicates sentences for efficiency, and updates your deck in batches.
 
-### Example
+### Examples
 
-```bash
-python augment_translation.py \
-  --deck "Japanese::Mining" \
-  --target-field "SentenceEnglish" \
-  --source-field "Sentence"
-```
+#### 1. Basic Translation
+Translate Japanese sentences in your mining deck to English.
 
-### Features
-- **Smart Fill**: Only translates cards where the target field is empty.
-- **Normalization**: Automatically removes Anki cloze formatting (`{{c1::...}}`) before translating.
+**Prompt:**
+> Use the skill anki-translate-deck with the deck "Japanese::Mining", source field "Sentence", target field "SentenceEnglish".
+
+#### 2. Specific Scope
+Translate only a few notes from a Hindi deck.
+
+**Prompt:**
+> Use anki-translate-deck for deck "Language Hindi::My hindi words and phrases", source "Expression", target "ExpressionEnglish". Process only 5 notes.
 
 ### Parameters
-- `--deck`: The Anki Deck Name to process. Note type is inferred automatically.
-- `--target-field`: The field you want to fill with the English translation.
-- `--source-field`: The field containing the text to translate (defaults to "Expression").
-- `--total-notes`: Maximum number of notes to process in one run (defaults to 20).
-- `--batch-size`: Number of notes to update in Anki per batch (defaults to 5).
-- `--dry-run`: Preview translations without updating Anki.
+- `--deck`: (Required) The Anki Deck Name to process.
+- `--target-field`: (Optional) The field where the translation will be stored. Defaults to `ExpressionEnglish`.
+- `--source-field`: (Optional) The field containing the text to translate. Defaults to `Expression`.
+- `--total-notes`: (Optional) Limit the number of notes processed. Defaults to `20`.
+- `--batch-size`: (Optional) Number of strings per translation request. Defaults to `5`.
+- `--dry-run`: (Optional) Preview translations without updating Anki.
 
 ---
 
