@@ -25,7 +25,7 @@ When this skill is triggered, respect the following parameters (usually provided
 To translate a field in an Anki deck using these parameters, follow these steps:
 
 ### 1. Fetch and Filter Notes (Strictly Empty Target)
-Query AnkiConnect for notes in the specified `--deck` where the `--target-field` is **unset (empty)**. 
+Query AnkiConnect for notes in the specified `--deck` where the `--target-field` is **unset (empty)**.
 
 **AnkiConnect Query Example:**
 ```bash
@@ -40,7 +40,7 @@ curl -s -X POST http://localhost:8765 -d '{
 
 1. Fetch note details using `notesInfo` for the resulting IDs.
 2. If multiple note types exist, infer the primary model from the first note.
-3. Sort notes by `FreqSort` (if available) to prioritize common words.
+3. Sort notes by `FreqSort` or `Frequency` (if available) to prioritize common words.
 4. Limit the list to `--total-notes`.
 
 ### 2. Normalize and Deduplicate
@@ -56,7 +56,7 @@ Delegate the translation of unique strings to a subagent (e.g., `generalist`).
 > "Translate the following list of strings into English. Maintain the exact order and provide ONLY the translations as a JSON list of strings."
 
 ### 4. Apply Updates
-Map the translations back to the original Note IDs. 
+Map the translations back to the original Note IDs.
 
 - **If `--dry-run`**: Print a table of `ID | Source | Normalized | Translation` and stop.
 - **Otherwise**: Update Anki in batches using `updateNoteFields`.

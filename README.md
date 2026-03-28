@@ -101,6 +101,24 @@ python augment_sentences.py \
 
 ---
 
+## Workspace Skill: `anki-add-frequency`
+
+Estimates how common a word or phrase is in a conversational setting (1-1000) and fills an Anki field. 1 is very common, 1000 is rare.
+
+### Example
+
+**Prompt:**
+> Use anki-add-frequency for deck "Japanese::Mining". Process 10 notes.
+
+### Parameters
+- `--deck`: (Required) The Anki Deck Name to process.
+- `--target-field`: (Optional) Field for the frequency number. Defaults to `Frequency`.
+- `--total-notes`: (Optional) Limit processing. Defaults to `20`.
+- `--batch-size`: (Optional) Notes per AI request. Defaults to `5`.
+- `--dry-run`: (Optional) Preview results only.
+
+---
+
 ## Workspace Skill: `anki-add-translation`
 
 This workspace skill provides a procedural workflow to automatically translate Anki note fields into English using Gemini. It handles Anki cloze formatting, deduplicates sentences for efficiency, and updates your deck in batches.
