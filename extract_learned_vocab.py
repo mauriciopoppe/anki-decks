@@ -49,7 +49,4 @@ def get_learned_words():
 
 if __name__ == '__main__':
     words = get_learned_words()
-    with open('learned_words.txt', 'w', encoding='utf-8') as f:
-        for word in words:
-            f.write(f"{word}\n")
-    print(f"Extracted {len(words)} learned words to learned_words.txt")
+    print("\n".join(words))
