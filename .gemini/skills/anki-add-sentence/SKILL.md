@@ -51,8 +51,8 @@ curl -s -X POST http://localhost:8765 -d '{
 ### 3. Generate Sentences (Subagent Delegation)
 Group the target words (from the `--source-field`) into batches of `--batch-size`. Delegate the generation to a subagent (e.g., `generalist`).
 
-**Instruction for Subagent (Japanese Example):**
-> "You are an expert Japanese linguist. Generate one 'i+1' example sentence for each of the following target words.
+**Instruction for Subagent:**
+> "You are an expert [Language] linguist. Generate one 'i+1' example sentence for each of the following target words.
 >
 > **LEARNED VOCABULARY:**
 > [Insert content of extract_learned_vocab.py stdout here]
@@ -62,16 +62,16 @@ Group the target words (from the `--source-field`) into batches of `--batch-size
 >
 > **CONSTRAINTS:**
 > 1. Use ONLY words from the learned list plus the target word.
-> 2. Use polite (です/ます) form by default.
+> 2. Use a natural and conversational tone.
 > 3. Bold the target word using `<b>` tags.
-> 4. Use Anki furigana style: ` 漢字[ふりがな]` (ensure a leading space before Kanji).
+> 4. [Language Specific: e.g. For Japanese, use Anki furigana style: ` 漢字[ふりがな]` with a leading space].
 > 5. Provide output as a JSON object: `{\"word\": {\"sentence\": \"...\", \"english\": \"...\"}}`."
 
 ### 4. Apply Updates
 Map the generated sentences and translations back to the original Note IDs and update Anki using `updateNoteFields`.
 
 - **Field Mapping:**
-  - `[--target-field]`: The generated Japanese sentence with furigana and bolding.
+  - `[--target-field]`: The generated sentence with proper formatting and bolding.
   - `[--target-field-english]`: The English translation of the sentence.
 
 ## Guidelines
@@ -79,5 +79,7 @@ Map the generated sentences and translations back to the original Note IDs and u
 - **Smart Fill Rule**: **NEVER** process notes that already have content in the `--target-field`. This is the primary filtering mechanism.
 - **Priority**: Always sort by `FreqSort` before limiting by `--total-notes`.
 - **Batching**: Always respect the `--batch-size` to maintain quality and avoid context limits.
-- **Furigana**: Strictly follow the ` 漢字[ふりがな]` format with the preceding space for Japanese decks.
+- **Language Formatting**: 
+  - **Japanese**: Strictly follow the ` 漢字[ふりがな]` format with the preceding space.
+  - **Other Languages**: Adjust formatting requirements (e.g. accents, gender agreement) in the subagent prompt.
 - **i+1 Principle**: The core value of this skill is the restricted vocabulary. Ensure the subagent understands this constraint.

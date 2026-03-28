@@ -38,7 +38,7 @@ This approach works like a **ladder**: each new word is a new rung, but the side
 
 ## Key Features
 - **`augment_notes.py` Script:** A versatile tool that uses configurable AI prompts and AnkiConnect to extract data from card fields and populate target fields with generated content.
-- **`augment_sentences.py` Script:** A batched i+1 augmentation tool that generates example sentences based on a user's learned vocabulary, reinforcing new words in a familiar context.
+- **`anki-add-sentence` Workspace Skill:** A batched i+1 augmentation tool that generates natural example sentences based on a user's learned vocabulary (extracted via `extract_learned_vocab.py`). Supports configurable source and target fields.
 - **`anki-add-translation` Workspace Skill:** A procedural workflow that automatically translates Anki note fields into English, handling normalization and batched processing via subagents.
 - **`anki-add-frequency` Workspace Skill:** Estimates conversational commonality (1-1000) for learning targets, helping prioritize vocabulary.
 - **Interactive Review Mode:** Review and approve AI-generated changes note-by-note (or batch-by-batch) to ensure quality and control before updating the deck.

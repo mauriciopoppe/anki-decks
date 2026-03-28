@@ -66,38 +66,27 @@ python augment_notes.py \
 - `--target-field`: The field you want to fill (e.g., "Notes").
 - `--prompt-file`: Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards. See the bundled [French](./french_explain_prompt.txt) and [Kanji](./kanji_mnemonic_prompt.txt) templates for examples.
 - `--model`: Defaults to `gemini/gemini-2.0-flash`. Use any LiteLLM string.
-- `--dry-run`: See what would happen without changing anything.
+- `--dry-run`: List the words that would be processed without calling the AI.
 
 ---
 
-## `augment_sentences.py`
+## Workspace Skill: `anki-add-sentence`
 
-This script performs **batched i+1 augmentation**. It takes a list of target words and generates example sentences that only use vocabulary you've already learned. Perfect for reinforcing new words in a familiar context.
+Generates **i+1 example sentences** for Anki learning targets. Ensures sentences only use words you've already learned (from `learned_words.txt`) plus the target word.
 
 ### Example
 
-Generates sentences for your Japanese mining deck based on your known vocabulary.
-
-```bash
-python augment_sentences.py \
-  --deck "Japanese::Mining" \
-  --total-notes 20 \
-  --batch-size 5 \
-  --prompt-file "./kanji_augment_sentences.txt"
-```
-
-### Features
-- **Batched Processing**: Sends multiple words in a single AI prompt to save on API calls and maintain consistency.
-- **i+1 Logic**: Replaces `{LEARNED_WORDS}` in your prompt with your actual progress to ensure sentences stay readable.
-- **Frequency Sorting**: Automatically prioritizes more common words by sorting by `FreqSort`.
+**Prompt:**
+> Use anki-add-sentence for deck "Japanese::Mining". Process 5 notes.
 
 ### Parameters
-- `--deck`: The Anki Deck Name to process (e.g., "Japanese::Mining"). Note type is inferred automatically.
-- `--total-notes`: Maximum number of notes to process in one run.
-- `--batch-size`: Number of words to include in each AI prompt.
-- `--prompt-file`: Template file. Use `{TARGET_WORDS}` and `{LEARNED_WORDS}` placeholders.
-- `--interactive (-i)`: Review each batch before it's saved.
-- `--dry-run`: List the words that would be processed without calling the AI.
+- `--deck`: (Required) The Anki Deck Name to process.
+- `--source-field`: (Optional) Field with the target word. Defaults to `Expression`.
+- `--target-field`: (Optional) Field for the generated sentence. Defaults to `Sentence`.
+- `--target-field-english`: (Optional) Field for the English translation. Defaults to `SentenceEnglish`.
+- `--total-notes`: (Optional) Limit processing. Defaults to `20`.
+- `--batch-size`: (Optional) Notes per AI request. Defaults to `5`.
+- `--dry-run`: (Optional) Preview words to be processed.
 
 ---
 
