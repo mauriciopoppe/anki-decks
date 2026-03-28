@@ -8,4 +8,4 @@
 ---
 
 - [x] **Track: Create a new script called augment_translation.py to automatically translate Anki note fields to English.**
-*Link: [./tracks/augment_translation_20260315/](./tracks/augment_translation_20260315/)*
+*Link: [./archive/augment_translation_20260315/](./archive/augment_translation_20260315/)*
