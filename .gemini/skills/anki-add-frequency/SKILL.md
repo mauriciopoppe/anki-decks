@@ -15,7 +15,7 @@ When this skill is triggered, respect the following parameters (usually provided
 
 - `--deck`: (Required) The Anki Deck Name to process.
 - `--target-field`: (Optional) The name of the field where the frequency number will be stored. Defaults to `Frequency`.
-- `--total-notes`: (Optional) Maximum number of notes to process in one run. Defaults to `20`.
+- `--limit`: (Optional) Maximum number of notes to process in one run. Defaults to `20`.
 - `--batch-size`: (Optional) The number of strings to evaluate in a single evaluation request. Defaults to `5`.
 - `--dry-run`: (Optional) If enabled, show a preview of extracted words and evaluated frequencies but do NOT update Anki.
 
@@ -39,7 +39,7 @@ curl -s -X POST http://localhost:8765 -d '{
 
 1. Fetch note details using `notesInfo` for the resulting IDs.
 2. Infer the primary language of the deck from the deck name or first note content.
-3. Limit the list to `--total-notes`.
+3. Limit the list to `--limit`.
 
 ### 2. Extract Learning Targets
 Identify the specific word or words the user is learning from the `Expression` field (or the first field if multiple).

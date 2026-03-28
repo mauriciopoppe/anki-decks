@@ -18,7 +18,7 @@ When this skill is triggered, respect the following parameters (usually provided
 - `--prompt-file`: (Required) Path to a text file containing the prompt template. The template should use `{FieldName}` placeholders.
 - `--dry-run`: (Optional) If enabled, identify and list the notes to be updated without actually processing or modifying them.
 - `--interactive` / `-i`: (Optional) If enabled, process notes interactively, prompting the user to review and accept each generated response before updating.
-- `--total-notes`: (Optional) Maximum number of notes to process in one run.
+- `--limit`: (Optional) Maximum number of notes to process in one run.
 - `--sort-field`: (Optional) The field to use for sorting notes prior to processing. Defaults to `Frequency`.
 
 ## Workflow
@@ -39,7 +39,7 @@ Query AnkiConnect locally at `http://localhost:8765`.
 Iterate through the sorted notes to filter them:
 1. Verify that the `--target-field` and all required fields (identified in Step 1) exist on the note type. If they do not exist, report an error and stop.
 2. Keep only the notes where the `--target-field` is **empty** (or contains only whitespace).
-3. If `--total-notes` is specified, limit the final list of filtered notes to this number.
+3. If `--limit` is specified, limit the final list of filtered notes to this number.
 
 ### Step 4: Handle Dry Run
 If `--dry-run` is active, print a clear preview list of the filtered notes that would be updated (including their IDs and a preview of their relevant source fields), and then **terminate** the workflow without modifying any notes.

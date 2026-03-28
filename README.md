@@ -58,7 +58,7 @@ Translates a field (like "Expression") into natural English, automatically clean
 - `--deck`: (Required) The Anki Deck Name to process.
 - `--target-field`: (Required) The field you want to fill (e.g., "Notes").
 - `--prompt-file`: (Required) Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards. See the bundled [Explanation](./explain_prompt.txt), [Kanji](./kanji_mnemonic_prompt.txt), and [Translation](./translate_prompt.txt) templates for examples.
-- `--total-notes`: (Optional) Limit the number of notes processed. Defaults to `20`.
+- `--limit`: (Optional) Limit the number of notes processed. Defaults to `20`.
 - `--sort-field`: (Optional) The field to use for sorting notes. Defaults to `Frequency`.
 - `--interactive` / `-i`: (Optional) Review every AI response before it hits your deck.
 - `--dry-run`: (Optional) List the notes that would be processed without calling the AI.
@@ -83,7 +83,7 @@ Transform Anki cloze deletion hints from English to monolingual cues (definition
 ### Parameters
 - `--deck`: (Required) The Anki Deck Name to process.
 - `--target-field`: (Optional) Field with the cloze deletions. Defaults to `Expression`.
-- `--total-notes`: (Optional) Limit processing. Defaults to `5`.
+- `--limit`: (Optional) Limit processing. Defaults to `5`.
 - `--interactive` / `-i`: (Optional) Review every transformation.
 - `--dry-run`: (Optional) Preview results only.
 
@@ -103,7 +103,7 @@ Generates **i+1 example sentences** for learning targets. It ensures sentences o
 - `--source-field`: (Optional) Field with the target word. Defaults to `Expression`.
 - `--target-field`: (Optional) Field for the generated sentence. Defaults to `Sentence`.
 - `--target-field-english`: (Optional) Field for the English translation. Defaults to `SentenceEnglish`.
-- `--total-notes`: (Optional) Limit processing. Defaults to `20`.
+- `--limit`: (Optional) Limit processing. Defaults to `20`.
 - `--batch-size`: (Optional) Notes per AI request. Defaults to `5`.
 - `--dry-run`: (Optional) Preview words to be processed.
 
@@ -121,7 +121,7 @@ Estimates how common a word or phrase is in a conversational setting (scale 1-10
 ### Parameters
 - `--deck`: (Required) The Anki Deck Name to process.
 - `--target-field`: (Optional) Field for the frequency number. Defaults to `Frequency`.
-- `--total-notes`: (Optional) Limit processing. Defaults to `20`.
+- `--limit`: (Optional) Limit processing. Defaults to `20`.
 - `--batch-size`: (Optional) Notes per AI request. Defaults to `5`.
 - `--dry-run`: (Optional) Preview results only.
 

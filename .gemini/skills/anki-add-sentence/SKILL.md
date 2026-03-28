@@ -17,7 +17,7 @@ When this skill is triggered, respect the following parameters:
 - `--source-field`: (Optional) The field containing the target word. Defaults to `Expression`.
 - `--target-field`: (Optional) The field where the generated sentence will be stored. Defaults to `Sentence`.
 - `--target-field-english`: (Optional) The field where the English translation will be stored. Defaults to `SentenceEnglish`.
-- `--total-notes`: (Optional) Maximum number of notes to process in one run. Defaults to `20`.
+- `--limit`: (Optional) Maximum number of notes to process in one run. Defaults to `20`.
 - `--batch-size`: (Optional) The number of words to include in a single generation request. Defaults to `5`.
 - `--dry-run`: (Optional) Show a list of words that would be processed without generating sentences or updating Anki.
 
@@ -45,8 +45,8 @@ curl -s -X POST http://localhost:8765 -d '{
 ```
 
 1. Fetch note details using `notesInfo`.
-2. **Sort by FreqSort**: Sort the resulting notes by the `FreqSort` field (ascending) to prioritize common/important vocabulary.
-3. **Limit**: Take only the first `--total-notes` from the sorted list.
+2. **Sort by Frequency**: Sort the resulting notes by the `Frequency` field (ascending) to prioritize common/important vocabulary.
+3. **Limit**: Take only the first `--limit` from the sorted list.
 
 ### 3. Generate Sentences
 Group the target words (from the `--source-field`) into batches of `--batch-size`.
@@ -77,7 +77,7 @@ Map the generated sentences and translations back to the original Note IDs and u
 ## Guidelines
 
 - **Smart Fill Rule**: **NEVER** process notes that already have content in the `--target-field`. This is the primary filtering mechanism.
-- **Priority**: Always sort by `FreqSort` before limiting by `--total-notes`.
+- **Priority**: Always sort by `Frequency` before limiting by `--limit`.
 - **Batching**: Always respect the `--batch-size` to maintain quality and avoid context limits.
 - **Language Formatting**: 
   - **Japanese**: Strictly follow the ` 漢字[ふりがな]` format with the preceding space.

@@ -20,7 +20,7 @@ When transforming a cloze hint, apply the following priority:
 
 - `--deck`: (Required) The Anki Deck Name to process.
 - `--target-field`: (Optional) The name of the field containing the cloze deletions. Defaults to `Expression`.
-- `--total-notes`: (Optional) Maximum number of notes to process in one run. Defaults to 5.
+- `--limit`: (Optional) Maximum number of notes to process in one run. Defaults to 5.
 - `--dry-run`: (Optional) Show the proposed changes without applying them.
 - `--interactive` / `-i`: (Optional) If enabled, process notes interactively, prompting the user to review and accept each transformation before updating.
 
@@ -31,7 +31,7 @@ Query AnkiConnect at `http://localhost:8765`.
 1. Use `findNotes` with `deck:"<deck-name>"` and a query that targets notes with English hints (e.g., `{{c1::*::*}}`).
 2. Use `notesInfo` to fetch the field data for the identified notes.
 3. Sort the notes numerically by Frequency if available (descending) or by their creation ID.
-4. Limit the list to the number specified in `--total-notes`.
+4. Limit the list to the number specified in `--limit`.
 
 ### Step 2: Analyze and Transform
 For each note, identify the cloze deletions in the `--target-field`. For each deletion:
