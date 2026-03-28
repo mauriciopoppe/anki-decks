@@ -8,7 +8,7 @@ This track aims to enrich the `Japanese::Mining` Anki deck by populating the `Se
    - Identify "learned" words from both the `Japanese::Kaishi 1.5k` and `Japanese::Mining` decks. 
    - A word is considered "learned" if its card interval is greater than 0 (`Interval > 0`).
 2. **Target Prioritization:**
-   - Process target words in the `Japanese::Mining` deck sorted by the `FreqSort` field.
+   - Process target words in the `Japanese::Mining` deck sorted by the `Frequency` field.
 3. **Sentence Generation (i+1):**
    - For each target word, generate a sentence where the target word is the only "new" piece of vocabulary.
    - All other vocabulary in the sentence must be from the "learned" word list.

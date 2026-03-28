@@ -26,7 +26,7 @@ Crucially, the skill will retain the exact same parameters as the Python script 
    - `--dry-run`: (Optional) Identify and list notes without processing.
    - `--interactive` / `-i`: (Optional) Process notes interactively, reviewing each response.
    - `--total-notes`: (Optional) Total number of notes to process.
-   - `--sort-field`: (Optional) Field to sort by. Defaults to `FreqSort`.
+   - `--sort-field`: (Optional) Field to sort by. Defaults to `Frequency`.
 
 4. **Define Workflow Instructions in `SKILL.md`:**
    Instruct the agent to follow these steps in plain English:

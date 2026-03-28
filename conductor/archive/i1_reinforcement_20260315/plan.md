@@ -19,7 +19,7 @@
 
 ## Phase 3: Bulk Processing & Deck Update
 - [x] Task: Implement the bulk update script.
-    - [x] Read the `Japanese::Mining` deck and sort words by `FreqSort`.
+    - [x] Read the `Japanese::Mining` deck and sort words by `Frequency`.
     - [x] For each word with empty `Sentence` fields, call the AI to generate content.
     - [x] Use `augment_notes.py` (or a specialized extension) to update Anki.
 - [x] Task: Run the bulk update for the first batch of words.

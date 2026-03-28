@@ -59,7 +59,7 @@ Translates a field (like "Expression") into natural English, automatically clean
 - `--target-field`: (Required) The field you want to fill (e.g., "Notes").
 - `--prompt-file`: (Required) Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards. See the bundled [Explanation](./explain_prompt.txt), [Kanji](./kanji_mnemonic_prompt.txt), and [Translation](./translate_prompt.txt) templates for examples.
 - `--total-notes`: (Optional) Limit the number of notes processed. Defaults to `20`.
-- `--sort-field`: (Optional) The field to use for sorting notes. Defaults to `FreqSort`.
+- `--sort-field`: (Optional) The field to use for sorting notes. Defaults to `Frequency`.
 - `--interactive` / `-i`: (Optional) Review every AI response before it hits your deck.
 - `--dry-run`: (Optional) List the notes that would be processed without calling the AI.
 
