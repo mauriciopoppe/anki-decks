@@ -1,0 +1,12 @@
+Translate the following Anki card field into natural English.
+
+Input: "{Expression}"
+
+### INSTRUCTIONS
+1. **Normalization**: If the input contains Anki cloze deletion markers (e.g., {{c1::word::hint}} or {{c1::word}}), remove the markers and hints, keeping only the target word/phrase.
+2. **Translation**: Translate the entire normalized sentence or phrase into natural English.
+3. **Output**: Provide ONLY the English translation. No preamble, no quotes, no explanations.
+
+### Examples
+- Input: `{{c1::Shubh::Good}} ratri!` -> Output: `Good night!`
+- Input: `Sur ça, tu touches un point {{c1::assez juste}}` -> Output: `On that, you hit a very fair point.`

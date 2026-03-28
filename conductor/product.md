@@ -37,9 +37,8 @@ The method reuses **grammatical frameworks** to provide scaffolding.
 This approach works like a **ladder**: each new word is a new rung, but the side rails (the sentences) stay the same for several rungs, providing a stable grip as you climb. Words are not learned in isolation; they are learned by how they "slot" into understood sentences.
 
 ## Key Features
-- **`anki-add-notes` Workspace Skill:** Orchestrates the AI augmentation of Anki notes via AnkiConnect using configurable prompt templates.
+- **`anki-add-notes` Workspace Skill:** Orchestrates the AI augmentation of Anki notes via AnkiConnect using configurable prompt templates (e.g., mnemonics, explanations, translations).
 - **`anki-add-sentence` Workspace Skill:** A batched i+1 augmentation tool that generates natural example sentences based on a user's learned vocabulary (extracted via `extract_learned_vocab.py`).
-- **`anki-add-translation` Workspace Skill:** A procedural workflow that automatically translates Anki note fields into English, handling normalization and batched processing.
 - **`anki-add-frequency` Workspace Skill:** Estimates conversational commonality (1-1000) for learning targets, helping prioritize vocabulary.
 - **Interactive Review Mode:** Review and approve AI-generated changes note-by-note (or batch-by-batch) to ensure quality and control before updating the deck.
 - **AnkiConnect Integration:** Seamlessly update a running Anki instance, allowing for immediate feedback and iterative deck improvement.

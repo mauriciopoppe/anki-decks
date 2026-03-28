@@ -1,12 +1,10 @@
 # Anki Decks & Workspace Skills
 
-A collection of **AI Workspace Skills** designed to make Anki smarter. Instead of manual data entry, you can use these skills to automatically fill in mnemonics, grammar explanations, or example sentences directly through your AI agent's chat interface.
+A collection of **AI Workspace Skills** designed to show useful information in Anki. You can use these skills to automatically fill in mnemonics, grammar explanations, or example sentences directly through your AI agent's chat interface.
 
 ## How it Works
 
 These skills are stored in the `.gemini/skills/` directory. When you open this project with a compatible AI agent (like Gemini CLI), it **automatically discovers and loads** these skills.
-
-You don't need to run Python scripts manually for most tasks—just ask your AI agent to use the specific skill by name.
 
 ## Quick Start
 
@@ -50,10 +48,16 @@ Uses the Kanji and its meaning to create a story that helps you remember the sha
 **Prompt:**
 > Use anki-add-notes for deck "Language Japanese::Mining", target field "Notes", and prompt file "./kanji_mnemonic_prompt.txt".
 
+#### 3. Translate Sentences
+Translates a field (like "Expression") into natural English, automatically cleaning Anki cloze markers.
+
+**Prompt:**
+> Use anki-add-notes for deck "Language Hindi::My hindi words and phrases", target field "ExpressionEnglish", and prompt file "./translate_prompt.txt".
+
 ### Parameters
 - `--deck`: (Required) The Anki Deck Name to process.
 - `--target-field`: (Required) The field you want to fill (e.g., "Notes").
-- `--prompt-file`: (Required) Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards.
+- `--prompt-file`: (Required) Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards. See the bundled [Explanation](./explain_prompt.txt), [Kanji](./kanji_mnemonic_prompt.txt), and [Translation](./translate_prompt.txt) templates for examples.
 - `--total-notes`: (Optional) Limit the number of notes processed. Defaults to `20`.
 - `--sort-field`: (Optional) The field to use for sorting notes. Defaults to `FreqSort`.
 - `--interactive` / `-i`: (Optional) Review every AI response before it hits your deck.
@@ -96,25 +100,6 @@ Estimates how common a word or phrase is in a conversational setting (scale 1-10
 - `--total-notes`: (Optional) Limit processing. Defaults to `20`.
 - `--batch-size`: (Optional) Notes per AI request. Defaults to `5`.
 - `--dry-run`: (Optional) Preview results only.
-
----
-
-## Workspace Skill: `anki-add-translation`
-
-Automatically translates Anki note fields into English. It handles Anki cloze formatting, deduplicates sentences for efficiency, and updates your deck in batches.
-
-### Example
-
-**Prompt:**
-> Use anki-add-translation for deck "Language Hindi::My hindi words and phrases", source "Expression", target "ExpressionEnglish". Process 5 notes.
-
-### Parameters
-- `--deck`: (Required) The Anki Deck Name to process.
-- `--target-field`: (Optional) The field where the translation will be stored. Defaults to `ExpressionEnglish`.
-- `--source-field`: (Optional) The field containing the text to translate. Defaults to `Expression`.
-- `--total-notes`: (Optional) Limit the number of notes processed. Defaults to `20`.
-- `--batch-size`: (Optional) Number of strings per translation request. Defaults to `5`.
-- `--dry-run`: (Optional) Preview translations without updating Anki.
 
 ---
 
