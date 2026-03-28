@@ -1,9 +1,9 @@
 ---
-name: anki-translate-deck
+name: anki-add-translation
 description: Procedural workflow to translate Anki note fields into English. Use when Gemini CLI needs to enrich Anki decks with English translations using direct LLM calls or subagents. Supports parameters for deck selection, field mapping, and batch control.
 ---
 
-# Anki Translate Deck
+# Anki Add Translation
 
 ## Overview
 

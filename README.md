@@ -101,7 +101,7 @@ python augment_sentences.py \
 
 ---
 
-## Workspace Skill: `anki-translate-deck`
+## Workspace Skill: `anki-add-translation`
 
 This workspace skill provides a procedural workflow to automatically translate Anki note fields into English using Gemini. It handles Anki cloze formatting, deduplicates sentences for efficiency, and updates your deck in batches.
 
@@ -111,13 +111,13 @@ This workspace skill provides a procedural workflow to automatically translate A
 Translate Japanese sentences in your mining deck to English.
 
 **Prompt:**
-> Use the skill anki-translate-deck with the deck "Japanese::Mining", source field "Sentence", target field "SentenceEnglish".
+> Use the skill anki-add-translation with the deck "Japanese::Mining", source field "Sentence", target field "SentenceEnglish".
 
 #### 2. Specific Scope
 Translate only a few notes from a Hindi deck.
 
 **Prompt:**
-> Use anki-translate-deck for deck "Language Hindi::My hindi words and phrases", source "Expression", target "ExpressionEnglish". Process only 5 notes.
+> Use anki-add-translation for deck "Language Hindi::My hindi words and phrases", source "Expression", target "ExpressionEnglish". Process only 5 notes.
 
 ### Parameters
 - `--deck`: (Required) The Anki Deck Name to process.
