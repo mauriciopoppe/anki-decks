@@ -1,6 +1,6 @@
 ---
 name: anki-add-frequency
-description: Evaluate conversational frequency of Anki learning targets. Use when Gemini CLI needs to estimate how common a word or phrase is in a conversational setting (scale 1-1000) and populate an Anki field with this frequency data.
+description: Evaluate conversational frequency of Anki learning targets. Use when an AI agent needs to estimate how common a word or phrase is in a conversational setting (scale 1-1000) and populate an Anki field with this frequency data.
 ---
 
 # Anki Add Frequency
@@ -16,7 +16,7 @@ When this skill is triggered, respect the following parameters (usually provided
 - `--deck`: (Required) The Anki Deck Name to process.
 - `--target-field`: (Optional) The name of the field where the frequency number will be stored. Defaults to `Frequency`.
 - `--total-notes`: (Optional) Maximum number of notes to process in one run. Defaults to `20`.
-- `--batch-size`: (Optional) The number of strings to evaluate in a single subagent/LLM request. Defaults to `5`.
+- `--batch-size`: (Optional) The number of strings to evaluate in a single evaluation request. Defaults to `5`.
 - `--dry-run`: (Optional) If enabled, show a preview of extracted words and evaluated frequencies but do NOT update Anki.
 
 ## Workflow
@@ -44,14 +44,14 @@ curl -s -X POST http://localhost:8765 -d '{
 ### 2. Extract Learning Targets
 Identify the specific word or words the user is learning from the `Expression` field (or the first field if multiple).
 1. Look for Anki cloze markers: `{{c1::target::hint}}` or `{{c1::target}}`.
-2. **Extract**: Use regex to get just the `target` part.
-   - **Regex**: `re.search(r"\{\{c\d+::(.*?)(::.*?)?\}\}", text).group(1)`
-3. **Deduplicate**: Identify unique strings to minimize evaluation costs.
+2. **Extract**: Use your available extraction tools or logic to get just the `target` part.
+   - **Logic**: Find the content between `{{c1::` and the first `::` (or the closing `}}`).
+3. **Deduplicate**: Identify unique strings to minimize evaluation overhead.
 
-### 3. Evaluate Frequency (Subagent Delegation)
-Delegate the frequency evaluation of unique strings to a subagent (e.g., `generalist`).
+### 3. Evaluate Frequency
+Evaluate the frequency of the unique strings.
 
-**Instruction for Subagent:**
+**Evaluation Instruction:**
 > "Evaluate how often the following strings appear in a conversational setting in [Language]. Map each to a number between 1 and 1000, where 1 represents a word used very often (e.g., pronouns, basic verbs) and 1000 represents a word that is rarely used. Provide the result as a JSON object mapping the original string to its frequency number."
 
 ### 4. Apply Updates
@@ -64,5 +64,5 @@ Map the evaluated frequencies back to the original Note IDs.
 
 - **Smart Fill Rule**: **NEVER** process notes that already have content in the `--target-field`.
 - **Scale Consistency**: Ensure 1 is most frequent, 1000 is least frequent.
-- **Batching**: Respect the `--batch-size` when sending strings to the subagent.
+- **Batching**: Respect the `--batch-size` when evaluating strings.
 - **Cost Awareness**: Summarize the number of evaluations to be performed before starting.

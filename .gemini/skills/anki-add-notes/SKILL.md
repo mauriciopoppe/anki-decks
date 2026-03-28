@@ -7,7 +7,7 @@ description: Procedural workflow to orchestrate the AI augmentation of Anki note
 
 ## Overview
 
-This skill provides a procedural workflow for augmenting Anki note fields by taking existing note data, formatting it into a prompt template read from a file, and using an LLM (yourself) to generate content to populate a specific target field. **It strictly targets notes where the target field is currently empty**, preventing redundant work and data overwrites.
+This skill provides a procedural workflow for augmenting Anki note fields by taking existing note data, formatting it into a prompt template read from a file, and using your AI capabilities to generate content to populate a specific target field. **It strictly targets notes where the target field is currently empty**, preventing redundant work and data overwrites.
 
 ## Parameters
 
@@ -26,7 +26,7 @@ When this skill is triggered, respect the following parameters (usually provided
 To augment Anki notes using these parameters, follow these steps exactly:
 
 ### Step 1: Read the Prompt Template
-Use the `read_file` tool to read the contents of the file specified in `--prompt-file`. Identify all required fields by finding placeholders in the format `{FieldName}` within the template.
+Use your available file-reading tools to read the contents of the file specified in `--prompt-file`. Identify all required fields by finding placeholders in the format `{FieldName}` within the template.
 
 ### Step 2: Fetch and Sort Notes
 Query AnkiConnect locally at `http://localhost:8765`.
@@ -48,7 +48,7 @@ If `--dry-run` is active, print a clear preview list of the filtered notes that 
 For each filtered note:
 1. Extract the actual field values from the note's fields.
 2. Substitute the `{FieldName}` placeholders in the prompt template with these actual values to create the final prompt.
-3. Act as the LLM: generate the response directly using the filled prompt.
+3. Generate the response directly using the filled prompt.
 4. If `--interactive` (or `-i`) is enabled, present the generated text to the user for approval. Provide options: accept (y), reject (n), skip remaining (s), or quit (q). Respect their choice.
 5. Convert the Markdown response to HTML. Specifically, replace any `<strong>` tags with `<b>` tags and `</strong>` with `</b>`.
 

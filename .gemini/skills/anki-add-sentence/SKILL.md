@@ -1,6 +1,6 @@
 ---
 name: anki-add-sentence
-description: Procedural workflow to generate i+1 example sentences for Anki notes. Use when Gemini CLI needs to enrich Anki decks with example sentences that only use vocabulary the user has already learned (plus the new target word). Supports Japanese by default.
+description: Procedural workflow to generate i+1 example sentences for Anki notes. Use when an AI agent needs to enrich Anki decks with example sentences that only use vocabulary the user has already learned (plus the new target word). Supports Japanese by default.
 ---
 
 # Anki Add Sentence
@@ -48,11 +48,11 @@ curl -s -X POST http://localhost:8765 -d '{
 2. **Sort by FreqSort**: Sort the resulting notes by the `FreqSort` field (ascending) to prioritize common/important vocabulary.
 3. **Limit**: Take only the first `--total-notes` from the sorted list.
 
-### 3. Generate Sentences (Subagent Delegation)
-Group the target words (from the `--source-field`) into batches of `--batch-size`. Delegate the generation to a subagent (e.g., `generalist`).
+### 3. Generate Sentences
+Group the target words (from the `--source-field`) into batches of `--batch-size`.
 
-**Instruction for Subagent:**
-> "You are an expert [Language] linguist. Generate one 'i+1' example sentence for each of the following target words.
+**Generation Instruction (Japanese Example):**
+> "You are an expert Japanese linguist. Generate one 'i+1' example sentence for each of the following target words.
 >
 > **LEARNED VOCABULARY:**
 > [Insert content of extract_learned_vocab.py stdout here]
@@ -81,5 +81,5 @@ Map the generated sentences and translations back to the original Note IDs and u
 - **Batching**: Always respect the `--batch-size` to maintain quality and avoid context limits.
 - **Language Formatting**: 
   - **Japanese**: Strictly follow the ` 漢字[ふりがな]` format with the preceding space.
-  - **Other Languages**: Adjust formatting requirements (e.g. accents, gender agreement) in the subagent prompt.
-- **i+1 Principle**: The core value of this skill is the restricted vocabulary. Ensure the subagent understands this constraint.
+  - **Other Languages**: Adjust formatting requirements (e.g. accents, gender agreement) in your internal instructions.
+- **i+1 Principle**: The core value of this skill is the restricted vocabulary. Ensure this constraint is strictly followed.

@@ -1,10 +1,16 @@
-# Anki Decks & Tools
+# Anki Decks & Workspace Skills
 
-A set of scripts to make Anki smarter using AI. I use these to automatically fill in details like mnemonics, grammar explanations, or example sentences so I can focus on actually learning.
+A collection of **AI Workspace Skills** designed to make Anki smarter. Instead of manual data entry, you can use these skills to automatically fill in mnemonics, grammar explanations, or example sentences directly through your AI agent's chat interface.
+
+## How it Works
+
+These skills are stored in the `.gemini/skills/` directory. When you open this project with a compatible AI agent (like Gemini CLI), it **automatically discovers and loads** these skills.
+
+You don't need to run Python scripts manually for most tasks—just ask your AI agent to use the specific skill by name.
 
 ## Quick Start
 
-1. **Set up a virtual environment**:
+1. **Set up a virtual environment** (needed for vocabulary extraction):
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate
@@ -14,12 +20,13 @@ A set of scripts to make Anki smarter using AI. I use these to automatically fil
    pip install -r requirements.txt
    ```
 3. **Make sure [AnkiConnect](https://ankiweb.net/shared/info/2055492159) is installed** and Anki is running.
+4. **Load the skills**: Use your AI agent's command to list or load workspace skills (e.g., `/skills list` in Gemini CLI).
 
 ---
 
 ## Workspace Skill: `anki-add-notes`
 
-This skill provides a procedural workflow to orchestrate the AI augmentation of Anki notes via AnkiConnect. It scans your deck for empty fields and fills them using a prompt template read from a file.
+This skill orchestrates the AI augmentation of Anki notes. It scans your deck for empty fields and fills them using a prompt template read from a local file.
 
 ### Examples
 
@@ -46,8 +53,8 @@ Uses the Kanji and its meaning to create a story that helps you remember the sha
 ### Parameters
 - `--deck`: (Required) The Anki Deck Name to process.
 - `--target-field`: (Required) The field you want to fill (e.g., "Notes").
-- `--prompt-file`: (Required) Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards. See the bundled [Explanation](./explain_prompt.txt) and [Kanji](./kanji_mnemonic_prompt.txt) templates for examples.
-- `--total-notes`: (Optional) Limit the number of notes processed.
+- `--prompt-file`: (Required) Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards.
+- `--total-notes`: (Optional) Limit the number of notes processed. Defaults to `20`.
 - `--sort-field`: (Optional) The field to use for sorting notes. Defaults to `FreqSort`.
 - `--interactive` / `-i`: (Optional) Review every AI response before it hits your deck.
 - `--dry-run`: (Optional) List the notes that would be processed without calling the AI.
@@ -56,12 +63,12 @@ Uses the Kanji and its meaning to create a story that helps you remember the sha
 
 ## Workspace Skill: `anki-add-sentence`
 
-Generates **i+1 example sentences** for Anki learning targets. Ensures sentences only use words you've already learned (from `learned_words.txt`) plus the target word.
+Generates **i+1 example sentences** for learning targets. It ensures sentences only use vocabulary you've already learned (by automatically running `extract_learned_vocab.py`) plus the single target word.
 
 ### Example
 
 **Prompt:**
-> Use anki-add-sentence for deck "Japanese::Mining". Process 5 notes.
+> Use anki-add-sentence for deck "Language Japanese::Mining". Process 5 notes.
 
 ### Parameters
 - `--deck`: (Required) The Anki Deck Name to process.
@@ -76,12 +83,12 @@ Generates **i+1 example sentences** for Anki learning targets. Ensures sentences
 
 ## Workspace Skill: `anki-add-frequency`
 
-Estimates how common a word or phrase is in a conversational setting (1-1000) and fills an Anki field. 1 is very common, 1000 is rare.
+Estimates how common a word or phrase is in a conversational setting (scale 1-1000) and fills an Anki field. 1 is very common, 1000 is rare.
 
 ### Example
 
 **Prompt:**
-> Use anki-add-frequency for deck "Japanese::Mining". Process 10 notes.
+> Use anki-add-frequency for deck "Language Hindi::My hindi words and phrases". Process 10 notes.
 
 ### Parameters
 - `--deck`: (Required) The Anki Deck Name to process.
@@ -94,21 +101,12 @@ Estimates how common a word or phrase is in a conversational setting (1-1000) an
 
 ## Workspace Skill: `anki-add-translation`
 
-This workspace skill provides a procedural workflow to automatically translate Anki note fields into English using Gemini. It handles Anki cloze formatting, deduplicates sentences for efficiency, and updates your deck in batches.
+Automatically translates Anki note fields into English. It handles Anki cloze formatting, deduplicates sentences for efficiency, and updates your deck in batches.
 
-### Examples
-
-#### 1. Basic Translation
-Translate Japanese sentences in your mining deck to English.
+### Example
 
 **Prompt:**
-> Use the skill anki-add-translation with the deck "Japanese::Mining", source field "Sentence", target field "SentenceEnglish".
-
-#### 2. Specific Scope
-Translate only a few notes from a Hindi deck.
-
-**Prompt:**
-> Use anki-add-translation for deck "Language Hindi::My hindi words and phrases", source "Expression", target "ExpressionEnglish". Process only 5 notes.
+> Use anki-add-translation for deck "Language Hindi::My hindi words and phrases", source "Expression", target "ExpressionEnglish". Process 5 notes.
 
 ### Parameters
 - `--deck`: (Required) The Anki Deck Name to process.
@@ -122,8 +120,8 @@ Translate only a few notes from a Hindi deck.
 
 ## Important Notes
 
-- **Back up your deck** before running scripts that modify your database.
-- **Watch your API costs**. If you're processing thousands of cards, consider using a local model with Ollama.
-- **AnkiConnect** must be configured to allow the script to talk to Anki (usually works out of the box).
+- **Back up your deck** before running skills that modify your database.
+- **AnkiConnect** must be configured to allow your AI agent to talk to Anki.
+- Check your agent's documentation to verify that all workspace skills are properly loaded.
 
 License: MIT
