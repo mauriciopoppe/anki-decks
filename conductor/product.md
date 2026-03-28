@@ -19,8 +19,8 @@ The deck follows a strict **"i+1" (one new piece of information)** philosophy. E
 
 ### 2. Sentence Sharing across Multiple Notes
 Unlike many decks where every word has a unique sentence, this approach frequently **shares the exact same sentence** across 2 or 3 different target words.
-*   **Target Word A:** あなた (You) → Sentence: `あなたはトムさんですか。`
-*   **Target Word B:** さん (San) → Sentence: `あなたはトムさんですか。`
+*   **Target Word A:** あなた (You) → Sentence: `あなたはトムさんですか।`
+*   **Target Word B:** さん (San) → Sentence: `あなたはトムさんですか।`
 This ensures that when moving from Word A to Word B, the word is seen in a familiar "habitat," which reduces cognitive load and reinforces the grammar and vocabulary of the shared sentence.
 
 ### 3. Gradual Structural Expansion
@@ -49,49 +49,16 @@ This approach works like a **ladder**: each new word is a new rung, but the side
 
 ## Card Templates & Synchronization
 
-The HTML and CSS templates for the **Japanese::Mining** (Lapis model) deck are version-controlled in this repository:
-*   **Front:** `note-types-templates/mining/front.html`
-*   **Back:** `note-types-templates/mining/back.html`
-*   **Styling:** `note-types-templates/mining/styling.css`
+HTML and CSS templates for various note types are version-controlled in the `note-types-templates/` directory.
 
 ### How to Synchronize Templates to Anki
 
-To synchronize these local files with Anki, you can use the **Anki-Connect** API. Here is the general workflow:
+To synchronize local files with Anki, use the **Anki-Connect** API. The general one-liner for synchronization reads the local HTML/CSS files and updates the model templates and styling in a single command.
 
-1.  **Read the local files:** Read the contents of the `front.html`, `back.html`, and `styling.css` files.
-2.  **Use `updateModelTemplates`:** Call the `updateModelTemplates` action via Anki-Connect to update the Front and Back HTML for the "Lapis" model.
-    ```bash
-    curl -X POST http://localhost:8765 -d '{
-        "action": "updateModelTemplates",
-        "version": 6,
-        "params": {
-            "model": {
-                "name": "Lapis",
-                "templates": {
-                    "Card 1": {
-                        "Front": "...",
-                        "Back": "..."
-                    }
-                }
-            }
-        }
-    }'
-    ```
-3.  **Use `updateModelStyling`:** Call the `updateModelStyling` action to update the CSS.
-    ```bash
-    curl -X POST http://localhost:8765 -d '{
-        "action": "updateModelStyling",
-        "version": 6,
-        "params": {
-            "model": {
-                "name": "Lapis",
-                "css": "..."
-            }
-        }
-    }'
-    ```
-
-The user uses this one liner to update the settings on their own:
+#### 1. Japanese::Mining (Lapis Model)
+- **Path:** `note-types-templates/mining/`
+- **Anki Model:** `Lapis`
+- **Template Name:** `Mining`
 
 ```bash
 curl -s -X POST http://localhost:8765 -d "$(jq -n \
@@ -103,4 +70,19 @@ curl -s -X POST http://localhost:8765 -d "$(jq -n \
   '{action: "updateModelStyling", version: 6, params: {model: {name: "Lapis", css: $s}}}')"
 ```
 
-*Note: You must ensure that the "Lapis" model exists in Anki and that the template name ("Card 1") matches your actual setup.*
+#### 2. My Cloze Model
+- **Path:** `note-types-templates/my-cloze/`
+- **Anki Model:** `My Cloze`
+- **Template Name:** `Cloze`
+
+```bash
+curl -s -X POST http://localhost:8765 -d "$(jq -n \
+  --arg f "$(cat note-types-templates/my-cloze/front.html)" \
+  --arg b "$(cat note-types-templates/my-cloze/back.html)" \
+  '{action: "updateModelTemplates", version: 6, params: {model: {name: "My Cloze", templates: {Cloze: {Front: $f, Back: $b}}}}}')" && \
+  curl -s -X POST http://localhost:8765 -d "$(jq -n \
+  --arg s "$(cat note-types-templates/my-cloze/styling.css)" \
+  '{action: "updateModelStyling", version: 6, params: {model: {name: "My Cloze", css: $s}}}')"
+```
+
+*Note: You must ensure that the model names and template names match your actual Anki setup.*
