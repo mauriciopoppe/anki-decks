@@ -21,25 +21,21 @@ A set of scripts to make Anki smarter using AI. I use these to automatically fil
 
 ---
 
-## `augment_notes.py`
+## Workspace Skill: `anki-add-notes`
 
-This script scans your deck for empty fields and fills them using an LLM. It uses [LiteLLM](https://docs.litellm.ai/docs/providers), so it works with Gemini, OpenAI, Anthropic, or local models via Ollama.
+This skill provides a procedural workflow to orchestrate the AI augmentation of Anki notes via AnkiConnect. It scans your deck for empty fields and fills them using a prompt template read from a file.
 
 ### Examples
 
-#### 1. Explain French Sentences
+#### 1. Explain Sentences
 Takes a Cloze deletion like `Sur ça, tu touches un point {{c1::assez juste}}` and adds a detailed explanation to the "Notes" field.
 
 | Before | After |
 | --- | --- |
 | ![before](./resources/french-explain-before.png) | ![after](./resources/french-explain-after.png) |
 
-```bash
-python augment_notes.py \
-  --deck "Language French::My french words and phrases" \
-  --target-field "Notes" \
-  --prompt-file "./french_explain_prompt.txt"
-```
+**Prompt:**
+> Use anki-add-notes for deck "Language French::My french words and phrases", target field "Notes", and prompt file "./explain_prompt.txt".
 
 #### 2. Generate Kanji Mnemonics
 Uses the Kanji and its meaning to create a story that helps you remember the shape and sound.
@@ -48,25 +44,17 @@ Uses the Kanji and its meaning to create a story that helps you remember the sha
 | --- |
 | ![after](./resources/kanji-mnemonic-after.png) |
 
-```bash
-python augment_notes.py \
-  --deck "Language Japanese::Mining" \
-  --target-field "Notes" \
-  --prompt-file "./kanji_mnemonic_prompt.txt"
-```
-
-### Features
-- **Smart Fill**: Only touches cards where the target field is empty.
-- **Interactive Mode (`-i`)**: Review every AI response before it hits your deck.
-- **Dynamic Prompts**: Use `{FieldName}` in your prompt files to pull data from your cards.
-- **Auto-tagging**: Adds a date tag so you know exactly which cards were AI-augmented.
+**Prompt:**
+> Use anki-add-notes for deck "Language Japanese::Mining", target field "Notes", and prompt file "./kanji_mnemonic_prompt.txt".
 
 ### Parameters
-- `--deck`: The Anki Deck Name to process. Note type is inferred automatically.
-- `--target-field`: The field you want to fill (e.g., "Notes").
-- `--prompt-file`: Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards. See the bundled [French](./french_explain_prompt.txt) and [Kanji](./kanji_mnemonic_prompt.txt) templates for examples.
-- `--model`: Defaults to `gemini/gemini-2.0-flash`. Use any LiteLLM string.
-- `--dry-run`: List the words that would be processed without calling the AI.
+- `--deck`: (Required) The Anki Deck Name to process.
+- `--target-field`: (Required) The field you want to fill (e.g., "Notes").
+- `--prompt-file`: (Required) Path to your prompt template. Use `{FieldName}` placeholders to pull data from your cards. See the bundled [Explanation](./explain_prompt.txt) and [Kanji](./kanji_mnemonic_prompt.txt) templates for examples.
+- `--total-notes`: (Optional) Limit the number of notes processed.
+- `--sort-field`: (Optional) The field to use for sorting notes. Defaults to `FreqSort`.
+- `--interactive` / `-i`: (Optional) Review every AI response before it hits your deck.
+- `--dry-run`: (Optional) List the notes that would be processed without calling the AI.
 
 ---
 
