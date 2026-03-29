@@ -54,17 +54,17 @@ HTML and CSS templates for various note types are version-controlled in the `not
 To synchronize local files with Anki, use the **Anki-Connect** API. The general one-liner for synchronization reads the local HTML/CSS files and updates the model templates and styling in a single command.
 
 #### 1. Japanese::Mining (Lapis Model)
-- **Path:** `note-types-templates/mining/`
+- **Path:** `note-types-templates/lapis/`
 - **Anki Model:** `Lapis`
 - **Template Name:** `Mining`
 
 ```bash
 curl -s -X POST http://localhost:8765 -d "$(jq -n \
-  --arg f "$(cat note-types-templates/mining/front.html)" \
-  --arg b "$(cat note-types-templates/mining/back.html)" \
+  --arg f "$(cat note-types-templates/lapis/front.html)" \
+  --arg b "$(cat note-types-templates/lapis/back.html)" \
   '{action: "updateModelTemplates", version: 6, params: {model: {name: "Lapis", templates: {Mining: {Front: $f, Back: $b}}}}}')" && \
   curl -s -X POST http://localhost:8765 -d "$(jq -n \
-  --arg s "$(cat note-types-templates/mining/styling.css)" \
+  --arg s "$(cat note-types-templates/lapis/styling.css)" \
   '{action: "updateModelStyling", version: 6, params: {model: {name: "Lapis", css: $s}}}')"
 ```
 
