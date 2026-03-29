@@ -50,7 +50,7 @@ For each filtered note:
 2. Substitute the `{FieldName}` placeholders in the prompt template with these actual values to create the final prompt.
 3. Generate the response directly using the filled prompt.
 4. If `--interactive` (or `-i`) is enabled, present the generated text to the user for approval. Provide options: accept (y), reject (n), skip remaining (s), or quit (q). Respect their choice.
-5. Convert the Markdown response to HTML. Specifically, replace any `<strong>` tags with `<b>` tags and `</strong>` with `</b>`.
+5. Convert the Markdown response to HTML. Ensure that all Markdown elements (like bolding, italics, lists, and newlines) are converted to their corresponding HTML tags (e.g., `**text**` becomes `<b>text</b>`, newlines become `<br>`). Specifically, replace any `<strong>` tags with `<b>` tags and `</strong>` with `</b>`.
 
 ### Step 6: Apply Updates
 Map the generated HTML content back to the original Note IDs. Update Anki by making requests to AnkiConnect:
