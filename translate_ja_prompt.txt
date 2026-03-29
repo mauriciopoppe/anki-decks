@@ -1,0 +1,13 @@
+Translate the following Anki card field into natural Japanese.
+
+Input: "{Expression}"
+
+### INSTRUCTIONS
+1. **Normalization**: If the input contains Anki cloze deletion markers (e.g., {{c1::word::hint}} or {{c1::word}}), remove the markers and hints, keeping only the target word/phrase.
+2. **Translation**: Translate the entire normalized sentence or phrase into natural Japanese.
+3. **Furigana**: Use Anki furigana style for Kanji: ` 漢字[ふりがな]` with a leading space before the Kanji.
+4. **Output**: Provide ONLY the Japanese translation. No preamble, no quotes, no explanations.
+
+### Examples
+- Input: `{{c1::Shubh::Good}} ratri!` -> Output: `おやすみなさい！`
+- Input: `Sur ça, tu touches un point {{c1::assez juste}}` -> Output: `その 点[てん]、あなたはかなり 的確[てきかく]な 点[てん]を 突[つ]いていますね。`
