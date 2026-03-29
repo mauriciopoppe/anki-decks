@@ -143,6 +143,52 @@ Backup an Anki deck to a single `.apkg` binary file. Use this before making sign
 
 ---
 
+## Meta Prompts
+
+Meta prompts combine multiple skills into a single powerful workflow. These are useful for processing large batches of new notes across multiple dimensions (frequency, explanations, and translations).
+
+### Hindi Deck Augmentation
+Full augmentation for new Hindi notes, adding frequency data, detailed grammar/cultural notes, and English translations.
+
+**Prompt:**
+```text
+In the deck "Language Hindi::My hindi words and phrases":
+- use the skill anki-add-frequency.
+- use the skill anki-add-notes with the target field "Notes" and the prompt file "./explain_prompt.txt".
+- use the skill anki-add-notes with the target field "ExpressionEnglish" and the prompt file "./translate_prompt.txt".
+
+Process a limit of 200 notes with a batch size of 50. Parallelize where possible. Prefer atomic changes.
+```
+
+### French Deck Monolingualization
+Full augmentation for new French notes, adding frequency data, detailed explanations, and converting English cloze hints into concise monolingual cues.
+
+**Prompt:**
+```text
+In the deck "Language French::My french words and phrases":
+- use the skill anki-add-frequency.
+- use the skill anki-add-notes with the target field "Notes" and the prompt file "./explain_prompt.txt".
+- use the skill anki-add-notes with the target field "ExpressionEnglish" and the prompt file "./translate_prompt.txt".
+- use the skill anki-monolingual-hints.
+
+Process a limit of 200 notes with a batch size of 50. Parallelize where possible. Prefer atomic changes.
+```
+
+### Japanese Mining Deck Augmentation
+Comprehensive augmentation for Japanese mining notes, adding frequency, mnemonics, monolingual hints, and i+1 sentences.
+
+**Prompt:**
+```text
+In the deck "Language Japanese::Mining":
+- use the skill anki-add-frequency.
+- use the skill anki-add-notes with the target field "Notes", and prompt file "./kanji_mnemonic_prompt.txt".
+- use the skill anki-add-sentence.
+
+Process a limit of 200 notes with a batch size of 50. Parallelize where possible. Prefer atomic changes.
+```
+
+---
+
 ## Important Notes
 
 - **Back up your deck** using `anki-backup-deck` before running skills that modify your database.
