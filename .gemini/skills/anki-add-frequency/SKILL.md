@@ -58,7 +58,7 @@ Evaluate the frequency of the unique strings.
 Map the evaluated frequencies back to the original Note IDs.
 
 - **If `--dry-run`**: Print a table of `ID | Extracted Target | Frequency` and stop.
-- **Otherwise**: Update Anki in batches using `updateNoteFields`.
+- **Otherwise**: Update Anki in batches using the `multi` action to bundle multiple `updateNoteFields` and `addTags` requests into a single network call.
 
 ## Guidelines
 

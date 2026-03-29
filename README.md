@@ -67,18 +67,23 @@ Translates a field (like "Expression") into natural English, automatically clean
 
 ## Workspace Skill: `anki-monolingual-hints`
 
-Transform Anki cloze deletion hints from English to monolingual cues (definitions, synonyms, or grammar cues) in the target language. Use this to help users "think" in the target language by removing English crutches.
+Transform Anki cloze deletion hints from English to concise monolingual cues (definitions, synonyms, or grammar cues) in the target language, while preserving the original English hint in parentheses. Use this to help users "think" in the target language.
 
 ### Example
 
 **Prompt:**
 > Use anki-monolingual-hints for deck "Language French::My french words and phrases". Process 5 notes.
 
-### Strategy Priority
-1. **Zero Hint:** Remove the hint entirely if context makes it obvious.
-2. **Definition (TL):** Provide a simple definition in the target language.
-3. **Synonym/Antonym (TL):** Use `=` for synonyms or `≠` for antonyms.
-4. **Grammar Cue:** Use a short label for conjugation or rules.
+### Strategy Priority (with English hint in parentheses)
+1. **Zero Hint:** Only the English hint (e.g., `{{c1::de::(of)}}`).
+2. **Definition (TL):** Simple definition + English (e.g., `{{c1::voiture::véhicule (car)}}`).
+3. **Synonym/Antonym (TL):** `=` or `≠` + English (e.g., `{{c1::triste::≠ content (sad)}}`).
+4. **Grammar Cue:** Conjugation or rule label + English (e.g., `{{c1::suis::présent (am)}}`).
+
+**Rules:**
+- **Encourage Abbreviations:** Use short forms (e.g., `p.c.` for `passé composé`, `f.` for `féminin`) to keep the hint as small as possible.
+- **No Self-Reference:** Cues never contain the target word or its root.
+- **Conciseness:** Hints are kept as short as possible.
 
 ### Parameters
 - `--deck`: (Required) The Anki Deck Name to process.

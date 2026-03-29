@@ -54,8 +54,8 @@ For each filtered note:
 
 ### Step 6: Apply Updates
 Map the generated HTML content back to the original Note IDs. Update Anki by making requests to AnkiConnect:
-1. Use the `updateNoteFields` action to set the `--target-field` with the new HTML content.
-2. Use the `addTags` action to add the tags `anki_deck_augment` and the current date (in `YYYY-MM-DD` format) to the updated note.
+1. Use the `multi` action to bundle multiple `updateNoteFields` and `addTags` requests into a single network call. 
+2. Set the `--target-field` with the new HTML content and add the tags `anki_deck_augment` and the current date (in `YYYY-MM-DD` format).
 
 ## Guidelines
 - **Strictly Empty Targets**: **NEVER** process notes that already have content in the `--target-field`. This is the primary filtering rule.

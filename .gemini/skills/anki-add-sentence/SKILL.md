@@ -68,7 +68,7 @@ Group the target words (from the `--source-field`) into batches of `--batch-size
 > 5. Provide output as a JSON object: `{\"word\": {\"sentence\": \"...\", \"english\": \"...\"}}`."
 
 ### 4. Apply Updates
-Map the generated sentences and translations back to the original Note IDs and update Anki using `updateNoteFields`.
+Map the generated sentences and translations back to the original Note IDs. Update Anki using the `multi` action to bundle multiple `updateNoteFields` and `addTags` requests into a single network call.
 
 - **Field Mapping:**
   - `[--target-field]`: The generated sentence with proper formatting and bolding.

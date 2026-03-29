@@ -9,12 +9,19 @@ This skill automates the conversion of English hints in Anki cloze deletions (e.
 
 ## Strategy
 
-When transforming a cloze hint, apply the following priority:
+When transforming a cloze hint, replace the English hint with a **concise** monolingual cue and **keep the original English translation at the end in parentheses** (e.g., `{{c1::Target::TL_Cue (English)}}`). 
 
-1.  **Zero Hint:** Remove the hint entirely if the sentence context makes the answer obvious (e.g., `{{c1::de}}`).
-2.  **Definition (TL):** Provide a simple definition in the Target Language (e.g., `{{c1::voiture::moyen de transport}}`).
-3.  **Synonym/Antonym (TL):** Use `=` for synonyms or `≠` for antonyms (e.g., `{{c1::triste::≠ content}}`).
-4.  **Grammar Cue:** Use a short label for conjugation or rules (e.g., `{{c1::suis::être, présent}}`).
+**Rules:**
+- **Keep it small:** Both the TL cue and the English part should be as short as possible. **Encourage common abbreviations** (e.g., `p.c.` for `passé composé`, `f.` for `féminin`, `m.` for `masculin`) to keep the total length minimal.
+- **Single Strategy:** Do not combine priorities (e.g., don't use both a synonym and a grammar cue). Pick the best one from the list below.
+- **No Self-Reference:** The cue must not contain the target word itself or its clearly recognizable root.
+
+Apply the following priority for the TL cue:
+
+1.  **Zero Hint:** Use only the English hint in parentheses if the sentence context makes the answer obvious (e.g., `{{c1::de::(of)}}`).
+2.  **Definition (TL):** Provide a simple definition in the Target Language (e.g., `{{c1::voiture::moyen de transport (car)}}`).
+3.  **Synonym/Antonym (TL):** Use `=` for synonyms or `≠` for antonyms (e.g., `{{c1::triste::≠ content (sad)}}`).
+4.  **Grammar Cue:** Use a short label for conjugation or rules (e.g., `{{c1::suis::être, présent (am)}}`).
 
 ## Parameters
 
@@ -42,8 +49,8 @@ For each note, identify the cloze deletions in the `--target-field`. For each de
 5. If `--interactive` (or `-i`) is enabled, present the transformation to the user for approval. Provide options: accept (y), reject (n), skip remaining (s), or quit (q).
 
 ### Step 3: Apply Updates
-1. If `--dry-run` is NOT specified, use `updateNoteFields` to save the modified field back to Anki.
-2. Add a tag `monolingual_conversion` and the current date (YYYY-MM-DD) to the note using `addTags`.
+1. If `--dry-run` is NOT specified, update Anki using the `multi` action to bundle multiple `updateNoteFields` and `addTags` requests into a single network call.
+2. For each note, save the modified field and add a tag `monolingual_conversion` and the current date (YYYY-MM-DD).
 
 ## Requirements
 - **Anki** must be running with **AnkiConnect** installed.
