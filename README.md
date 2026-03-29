@@ -8,17 +8,8 @@ These skills are stored in the `.gemini/skills/` directory. When you open this p
 
 ## Quick Start
 
-1. **Set up a virtual environment** (needed for vocabulary extraction):
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   ```
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. **Make sure [AnkiConnect](https://ankiweb.net/shared/info/2055492159) is installed** and Anki is running.
-4. **Load the skills**: Use your AI agent's command to list or load workspace skills (e.g., `/skills list` in Gemini CLI).
+1. **Make sure [AnkiConnect](https://ankiweb.net/shared/info/2055492159) is installed** and Anki is running.
+2. **Load the skills**: Use your AI agent's command to list or load workspace skills (e.g., `/skills list` in Gemini CLI).
 
 ---
 

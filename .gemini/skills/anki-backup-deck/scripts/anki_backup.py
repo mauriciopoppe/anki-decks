@@ -1,15 +1,18 @@
-import requests
+import urllib.request
+import urllib.error
 import json
 import argparse
 import os
 
 def invoke(action, **params):
-    response = requests.post('http://localhost:8765', json={
-        'action': action,
-        'version': 6,
-        'params': params
-    })
-    return response.json()
+    payload = json.dumps({"action": action, "version": 6, "params": params}).encode("utf-8")
+    try:
+        req = urllib.request.Request("http://localhost:8765", data=payload, headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req) as response:
+            res = json.load(response)
+            return res
+    except urllib.error.URLError as e:
+        return {"error": f"Failed to connect to AnkiConnect: {e}"}
 
 def main():
     parser = argparse.ArgumentParser(description='Backup an Anki deck to an .apkg file.')
