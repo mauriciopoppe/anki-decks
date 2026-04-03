@@ -88,13 +88,13 @@ footer {
   margin-block: 40px;
 }
 
-.expression-english {
+.expression-spanish, .expression-english {
     font-family: var(--font-serif);
     color: #666;
     font-style: italic;
     margin-bottom: 10px;
 }
-.nightMode .expression-english {
+.nightMode .expression-spanish, .nightMode .expression-english {
     color: #aaa;
 }
 
@@ -119,14 +119,14 @@ footer {
   /* Inherit font-size from parent to match front */
 }
 
-.expression-english {
+.expression-spanish, .expression-english {
   font-family: var(--font-serif);
   font-size: 0.8em;
   color: #666;
   font-style: italic;
 }
 
-.nightMode .expression-english {
+.nightMode .expression-spanish, .nightMode .expression-english {
   color: #aaa;
 }
 
