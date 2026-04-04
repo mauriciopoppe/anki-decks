@@ -1,0 +1,12 @@
+Translate the following Anki card field into natural Spanish from Mexico.
+
+Input: "{Expression}"
+
+### INSTRUCTIONS
+1. **Normalization**: If the input contains Anki cloze deletion markers (e.g., {{c1::word::hint}} or {{c1::word}}), remove the markers and hints, keeping only the target word/phrase.
+2. **Translation**: Translate the entire normalized sentence or phrase into natural Spanish from Mexico.
+3. **Output**: Provide ONLY the Mexican Spanish translation. No preamble, no quotes, no explanations.
+
+### Examples
+- Input: `{{c1::Shubh::Good}} ratri!` -> Output: `¡Buenas noches!`
+- Input: `Sur ça, tu touches un point {{c1::assez juste}}` -> Output: `En eso, diste en el clavo.`

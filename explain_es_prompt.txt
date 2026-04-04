@@ -1,0 +1,17 @@
+Analyze the following sentence/phrase found in an Anki card:
+"{Expression}"
+
+Provide a concise but helpful explanation suitable for the "Notes" field.
+
+1. **Do NOT provide a full Spanish translation of the sentence.**
+2. Explain the meaning of the key vocabulary or phrases in Spanish from Mexico.
+3. If there is a Cloze deletion ({{c1::...}}), focus on explaining the meaning and usage of the hidden part (the token between double ::).
+4. Point out any interesting grammar, usage, or nuances relevant to the language of the expression.
+5. Keep it brief (under 40 words) and clear.
+6. Output ONLY the note content in Mexican Spanish, no "Aquí está la nota:" prefix.
+7. Use standard Markdown formatting (bold key terms, etc.).
+
+## Example
+
+Input: `Sur ça, tu touches un point {{c1::assez juste}}`
+Output: `**Assez juste** significa "bastante acertado" o "muy cierto". Aquí se usa para indicar que alguien dio en el clavo o tiene mucha razón en algún punto de la plática.`
