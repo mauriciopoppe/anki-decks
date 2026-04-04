@@ -58,18 +58,18 @@ Translates a field (like "Expression") into your target language, automatically 
 
 ## Workspace Skill: `anki-monolingual-hints`
 
-Transform Anki cloze deletion hints from English to concise monolingual cues (definitions, synonyms, or grammar cues) in the target language, while preserving the original English hint in parentheses. Use this to help users "think" in the target language.
+Transform Anki cloze deletion hints from a source language (like English) to concise monolingual cues (definitions, synonyms, or grammar cues) in the target language, while preserving a translation in the specified `--target-language` (defaults to English) in parentheses. Use this to help users "think" in the target language.
 
 ### Example
 
 **Prompt:**
-> Use anki-monolingual-hints for deck "Language French::My french words and phrases". Process 5 notes.
+> Use anki-monolingual-hints for deck "Language French::My french words and phrases" with target language "Spanish".
 
-### Strategy Priority (with English hint in parentheses)
-1. **Zero Hint:** Only the English hint (e.g., `{{c1::de::(of)}}`).
-2. **Definition (TL):** Simple definition + English (e.g., `{{c1::voiture::véhicule (car)}}`).
-3. **Synonym/Antonym (TL):** `=` or `≠` + English (e.g., `{{c1::triste::≠ content (sad)}}`).
-4. **Grammar Cue:** Conjugation or rule label + English (e.g., `{{c1::suis::présent (am)}}`).
+### Strategy Priority (with target language hint in parentheses)
+1. **Zero Hint:** Only the target language hint (e.g., `{{c1::de::(de)}}`).
+2. **Definition (TL):** Simple definition + target language (e.g., `{{c1::voiture::véhicule (coche)}}`).
+3. **Synonym/Antonym (TL):** `=` or `≠` + target language (e.g., `{{c1::triste::≠ content (triste)}}`).
+4. **Grammar Cue:** Conjugation or rule label + target language (e.g., `{{c1::suis::présent (soy)}}`).
 
 **Rules:**
 - **Encourage Abbreviations:** Use short forms (e.g., `p.c.` for `passé composé`, `f.` for `féminin`) to keep the hint as small as possible.
@@ -78,6 +78,7 @@ Transform Anki cloze deletion hints from English to concise monolingual cues (de
 
 ### Parameters
 - `--deck`: (Required) The Anki Deck Name to process.
+- `--target-language`: (Optional) The language to use for the parenthetical translation. Defaults to English.
 - `--target-field`: (Optional) Field with the cloze deletions. Defaults to `Expression`.
 - `--limit`: (Optional) Limit processing. Defaults to `5`.
 - `--interactive` / `-i`: (Optional) Review every transformation.
