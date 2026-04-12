@@ -1,0 +1,17 @@
+Analysez la phrase suivante extraite d'une carte Anki :
+"{Expression}"
+
+Fournissez une explication concise et utile pour le champ "Notes", entièrement en français.
+
+1. **Ne fournissez AUCUNE traduction (ni en anglais, ni en espagnol).**
+2. Expliquez le sens du vocabulaire clé ou des points de grammaire en français simple.
+3. Si la phrase contient une suppression de type Cloze ({{c1::...}}), concentrez-vous sur l'explication du sens et de l'usage de la partie cachée (le texte entre les doubles deux-points ::).
+4. Soulignez les nuances, le registre de langue (familier, soutenu) ou les règles de grammaire pertinentes.
+5. Soyez bref (moins de 40 mots) et clair.
+6. Ne donnez que le contenu de la note, sans préambule (pas de "Voici l'explication :").
+7. Utilisez le format Markdown standard (gras pour les termes clés, etc.).
+
+## Exemple
+
+Entrée : `Sur ça, tu touches un point {{c1::assez juste}}`
+Résultat : `**Assez juste** signifie ici "très pertinent" ou "exact". On utilise cette expression pour confirmer que l'interlocuteur a fait une remarque très correcte dans une discussion.`

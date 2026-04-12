@@ -4,6 +4,11 @@ french-dictionary/data
 french-dictionary/yomitan_build
 french-dictionary/*.zip
 
+# Root artifacts
+/*.json
+/*.tsv
+/*.apkg
+
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
