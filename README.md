@@ -146,8 +146,8 @@ Full augmentation for new French notes, adding frequency data, detailed explanat
 ```text
 In the deck "Language French::My french words and phrases":
 - use the skill anki-add-frequency.
-- use the skill anki-add-notes with the target field "Notes" and the prompt file "./explain_prompt.txt".
-- use the skill anki-add-notes with the target field "ExpressionEnglish" and the prompt file "./translate_prompt.txt".
+- use the skill anki-add-notes with the target field "Notes" and the prompt file "./explain_es_prompt.txt".
+- use the skill anki-add-notes with the target field "ExpressionSpanish" and the prompt file "./translate_es_prompt.txt".
 - use the skill anki-monolingual-hints.
 
 Process a limit of 200 notes with a batch size of 50. Parallelize where possible. Prefer atomic changes.
