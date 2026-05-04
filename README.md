@@ -1,6 +1,6 @@
 # Anki Decks Skills
 
-An ecosystem of **AI Workspace Skills** for Anki that automates the creation of high-quality study materials. These tools enable AI agents to enrich your decks with mnemonics, i+1 example sentences, conversational frequency data, and monolingual hints directly through AnkiConnect.
+An ecosystem of **AI Skills** for Anki that automates the creation of high-quality study materials. These tools enable AI agents to enrich your decks with mnemonics, i+1 example sentences, conversational frequency data, and monolingual hints directly through AnkiConnect.
 
 ## How it Works
 
@@ -24,7 +24,7 @@ npx skills add .
 
 ---
 
-## Workspace Skill: `anki-add-notes`
+## Skill: `anki-add-notes`
 
 This skill orchestrates the AI augmentation of Anki notes. It scans your deck for empty fields and fills them using a prompt template read from a local file.
 
@@ -67,7 +67,7 @@ Translates a field (like "Expression") into your target language, automatically 
 
 ---
 
-## Workspace Skill: `anki-monolingual-hints`
+## Skill: `anki-monolingual-hints`
 
 Transform Anki cloze deletion hints from a source language (like English) to concise monolingual cues (definitions, synonyms, or grammar cues) in the target language, while preserving a translation in the specified `--target-language` (defaults to English) in parentheses. Use this to help users "think" in the target language.
 
@@ -97,7 +97,7 @@ Transform Anki cloze deletion hints from a source language (like English) to con
 
 ---
 
-## Workspace Skill: `anki-add-sentence`
+## Skill: `anki-add-sentence`
 
 Generates **i+1 example sentences** for learning targets. It ensures sentences only use vocabulary you've already learned (by automatically running `extract_learned_vocab.py`) plus the single target word.
 
@@ -117,7 +117,7 @@ Generates **i+1 example sentences** for learning targets. It ensures sentences o
 
 ---
 
-## Workspace Skill: `anki-add-frequency`
+## Skill: `anki-add-frequency`
 
 Estimates how common a word or phrase is in a conversational setting (scale 1-1000) and fills an Anki field. 1 is very common, 1000 is rare.
 
@@ -135,7 +135,7 @@ Estimates how common a word or phrase is in a conversational setting (scale 1-10
 
 ---
 
-## Workspace Skill: `anki-backup-deck`
+## Skill: `anki-backup-deck`
 
 Backup an Anki deck to a single `.apkg` binary file. Use this before making significant changes to your deck.
 
