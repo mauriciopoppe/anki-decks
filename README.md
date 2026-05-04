@@ -1,15 +1,26 @@
-# Anki Decks & Workspace Skills
+# Anki Decks Skills
 
-A collection of **AI Workspace Skills** designed to show useful information in Anki. You can use these skills to automatically fill in mnemonics, grammar explanations, or example sentences directly through your AI agent's chat interface.
+An ecosystem of **AI Workspace Skills** for Anki that automates the creation of high-quality study materials. These tools enable AI agents to enrich your decks with mnemonics, i+1 example sentences, conversational frequency data, and monolingual hints directly through AnkiConnect.
 
 ## How it Works
 
-These skills are stored in the `.gemini/skills/` directory. When you open this project with a compatible AI agent (like Gemini CLI), it **automatically discovers and loads** these skills.
+These skills are stored in the `skills/` directory. They follow the [Agent Skills](https://github.com/vercel-labs/skills) specification, making them portable and easy to install in any project.
 
-## Quick Start
+## Installation
 
-1. **Make sure [AnkiConnect](https://ankiweb.net/shared/info/2055492159) is installed** and Anki is running.
-2. **Load the skills**: Use your AI agent's command to list or load workspace skills (e.g., `/skills list` in Gemini CLI).
+You can install these skills using the `npx skills` CLI. This tool supports over 50 agents (Gemini CLI, Claude Code, Cursor, Windsurf, etc.) and will automatically detect your agent and install the skills in the appropriate directory.
+
+To install all skills from this repository:
+
+```bash
+npx skills add mauriciopoppe/anki-decks
+```
+
+If you are already inside this repository and want to load them:
+
+```bash
+npx skills add .
+```
 
 ---
 

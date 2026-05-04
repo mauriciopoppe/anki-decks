@@ -11,8 +11,8 @@ Crucially, the skill will retain the exact same parameters as the Python script 
 ## Implementation Steps
 
 1. **Initialize Skill Structure:**
-   - Create a new skill directory: `.gemini/skills/anki-add-notes`.
-   - Create the core file: `.gemini/skills/anki-add-notes/SKILL.md`.
+   - Create a new skill directory: `skills/anki-add-notes`.
+   - Create the core file: `skills/anki-add-notes/SKILL.md`.
 
 2. **Define Skill Frontmatter:**
    - Define `name: anki-add-notes`.

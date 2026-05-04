@@ -27,7 +27,7 @@ To generate sentences for an Anki deck, follow these steps:
 
 ### 1. Identify Learned Vocabulary
 Before generating any sentences, you must know what the user has already learned.
-1. Run `python3 .gemini/skills/anki-add-sentence/scripts/extract_learned_vocab.py`.
+1. Run the `scripts/extract_learned_vocab.py` script.
 2. Capture the `stdout` output as the list of learned words.
 
 ### 2. Fetch and Filter Notes (Strictly Empty Target)

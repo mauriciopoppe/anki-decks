@@ -17,6 +17,8 @@ When triggered, this skill uses a Python script to communicate with a running An
 
 ### Script Execution
 
+Run the `scripts/anki_backup.py` script.
+
 ```bash
 python3 scripts/anki_backup.py "<deck_name>" "<output_path>"
 ```
